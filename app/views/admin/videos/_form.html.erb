@@ -1,0 +1,27 @@
+<%= form_with model: video, url: url, class: "space-y-4 max-w-lg" do |f| %>
+  <% if video.errors.any? %>
+    <div class="p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+      <ul class="list-disc list-inside">
+        <% video.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :working_title, "Working Title", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :working_title, required: true, autofocus: true, placeholder: "e.g. I Survived 100 Days...", class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+    <p class="mt-1 text-xs text-gray-500">Internal name for this video idea (not shown in previews).</p>
+  </div>
+
+  <div>
+    <%= f.label :sample_views, "Sample View Count", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :sample_views, placeholder: "e.g. 1.2M views", class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+    <p class="mt-1 text-xs text-gray-500">Shown in previews (e.g. "1.2M views", "500K views").</p>
+  </div>
+
+  <div class="pt-2">
+    <%= f.submit class: "bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer" %>
+  </div>
+<% end %>

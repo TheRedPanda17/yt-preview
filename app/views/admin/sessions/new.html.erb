@@ -1,0 +1,23 @@
+<div class="max-w-md mx-auto mt-12">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">Log in</h1>
+
+  <%= form_with url: admin_login_path, class: "space-y-4" do |f| %>
+    <div>
+      <%= f.label :email, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.email_field :email, required: true, autofocus: true, class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+    </div>
+
+    <div>
+      <%= f.label :password, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.password_field :password, required: true, class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+    </div>
+
+    <div>
+      <%= f.submit "Log in", class: "w-full bg-red-600 text-white py-2.5 rounded-lg font-medium hover:bg-red-700 transition cursor-pointer" %>
+    </div>
+  <% end %>
+
+  <p class="mt-4 text-center text-sm text-gray-500">
+    Don't have an account? <%= link_to "Sign up", admin_signup_path, class: "text-red-600 hover:text-red-700 font-medium" %>
+  </p>
+</div>

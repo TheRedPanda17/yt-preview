@@ -1,0 +1,58 @@
+<div class="mb-6">
+  <%= link_to "&larr; Back to #{@video.working_title}".html_safe, admin_video_path(@video), class: "text-sm text-gray-500 hover:text-gray-700" %>
+</div>
+<h1 class="text-2xl font-bold text-gray-900 mb-2">Edit Pair</h1>
+<p class="text-sm text-gray-500 mb-6">Variant: <strong><%= @variant.name %></strong></p>
+
+<%= form_with model: @pair, url: admin_video_variant_pair_path(@video, @variant, @pair), multipart: true, class: "space-y-4 max-w-lg" do |f| %>
+  <% if @pair.errors.any? %>
+    <div class="p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+      <ul class="list-disc list-inside">
+        <% @pair.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if @pair.has_thumbnail? %>
+    <div class="mb-2">
+      <p class="text-sm font-medium text-gray-700 mb-2">Current Thumbnail</p>
+      <div class="aspect-video w-64 bg-gray-200 rounded-lg overflow-hidden">
+        <% if @pair.thumbnail.attached? %>
+          <%= image_tag @pair.thumbnail, class: "w-full h-full object-cover" %>
+        <% elsif @pair.thumbnail_url.present? %>
+          <img src="<%= @pair.thumbnail_url %>" class="w-full h-full object-cover" alt="">
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :title, "Video Title", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :title, required: true, class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+  </div>
+
+  <div>
+    <%= f.label :thumbnail, "Replace Thumbnail", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.file_field :thumbnail, accept: "image/*", class: "w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-red-50 file:text-red-700 hover:file:bg-red-100" %>
+  </div>
+
+  <div class="relative">
+    <div class="absolute inset-0 flex items-center" aria-hidden="true">
+      <div class="w-full border-t border-gray-200"></div>
+    </div>
+    <div class="relative flex justify-center">
+      <span class="bg-gray-50 px-3 text-xs text-gray-400">or</span>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :thumbnail_url, "Thumbnail URL", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.url_field :thumbnail_url, class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+  </div>
+
+  <div class="pt-2">
+    <%= f.submit "Update Pair", class: "bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer" %>
+  </div>
+<% end %>
