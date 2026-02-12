@@ -35,6 +35,66 @@
       </div>
     <% end %>
 
+    <!-- Voting progress banner -->
+    <% if voter_name.present? && @variants.any? %>
+      <%
+        has_variant_vote = @video.variant_votes.any? { |v| v.voter_name == voter_name }
+        voted_variant_ids = @variants.map { |v| v.pair_votes.detect { |pv| pv.voter_name == voter_name } }.compact.map(&:variant_id)
+        unvoted_variants = @variants.reject { |v| voted_variant_ids.include?(v.id) }
+        all_pairs_voted = unvoted_variants.empty?
+        all_done = has_variant_vote && all_pairs_voted
+      %>
+
+      <div class="mb-6 rounded-xl border px-5 py-4 flex items-start gap-3
+        <%= if all_done
+              'bg-green-50 border-green-200'
+            elsif has_variant_vote && !all_pairs_voted
+              'bg-blue-50 border-blue-200'
+            elsif all_pairs_voted && !has_variant_vote
+              'bg-amber-50 border-amber-200'
+            else
+              'bg-white border-[#e5e5e5]'
+            end %>">
+
+        <% if all_done %>
+          <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <div>
+            <p class="text-sm font-medium text-green-900">You're all done — thanks for voting!</p>
+            <p class="text-xs text-green-700 mt-0.5">You can change your votes at any time by clicking a different option.</p>
+          </div>
+
+        <% elsif has_variant_vote && !all_pairs_voted %>
+          <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+          <div>
+            <p class="text-sm font-medium text-blue-900">Great variant pick! Now choose your favorite pair in each variant.</p>
+            <p class="text-xs text-blue-700 mt-0.5">
+              Still need your vote:
+              <% unvoted_variants.each_with_index do |v, i| %>
+                <strong><%= v.name %></strong><%= i < unvoted_variants.size - 1 ? ', ' : '' %>
+              <% end %>
+            </p>
+          </div>
+
+        <% elsif all_pairs_voted && !has_variant_vote %>
+          <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div>
+            <p class="text-sm font-medium text-amber-900">You've picked your favorites in each variant — now vote for your overall favorite variant!</p>
+            <p class="text-xs text-amber-700 mt-0.5">Scroll through the variants and click "Vote for this variant" on the one you like best.</p>
+          </div>
+
+        <% else %>
+          <svg class="w-5 h-5 text-[#606060] flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          <div>
+            <p class="text-sm font-medium text-[#0f0f0f]">Two things to vote on:</p>
+            <ol class="text-xs text-[#606060] mt-1 list-decimal list-inside space-y-0.5">
+              <li><strong>Pick your overall favorite variant</strong> — click "Vote for this variant" next to a variant name</li>
+              <li><strong>Pick the best pair in each variant</strong> — hover a thumbnail and click "Vote best in variant"</li>
+            </ol>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
     <!-- Variants -->
     <% @variants.each_with_index do |variant, vi| %>
       <div class="mb-10">
@@ -42,12 +102,6 @@
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
             <h2 class="text-base font-medium text-[#0f0f0f]"><%= variant.name %></h2>
-            <% variant_vote_count = variant.variant_votes.size %>
-            <% if variant_vote_count > 0 %>
-              <span class="text-xs bg-[#f1f1f1] text-[#606060] px-2 py-0.5 rounded-full">
-                <%= variant_vote_count %> vote<%= variant_vote_count == 1 ? '' : 's' %>
-              </span>
-            <% end %>
           </div>
           <% if voter_name.present? %>
             <% existing_variant_vote = @video.variant_votes.detect { |v| v.voter_name == voter_name } %>
@@ -71,7 +125,6 @@
           <% variant.title_thumbnail_pairs.each do |pair| %>
             <% existing_pair_vote = variant.pair_votes.detect { |v| v.voter_name == voter_name } if voter_name.present? %>
             <% is_pair_voted = existing_pair_vote&.title_thumbnail_pair_id == pair.id if voter_name.present? %>
-            <% pair_vote_count = pair.pair_votes.size %>
 
             <div class="group">
               <!-- Thumbnail -->
@@ -134,12 +187,6 @@
                 </div>
               </div>
 
-              <!-- Pair vote count -->
-              <% if pair_vote_count > 0 %>
-                <div class="ml-12 mt-1">
-                  <span class="text-xs text-[#606060]"><%= pair_vote_count %> pair vote<%= pair_vote_count == 1 ? '' : 's' %></span>
-                </div>
-              <% end %>
             </div>
           <% end %>
         </div>
