@@ -7,6 +7,20 @@ module Admin
     end
 
     def create
+      unless ENV["ADMIN_INVITE_CODE"].present?
+        @admin = AdminUser.new(admin_params)
+        @admin.errors.add(:base, "Signups are currently disabled. No invite code has been configured.")
+        render :new, status: :unprocessable_entity
+        return
+      end
+
+      if params[:invite_code].blank? || params[:invite_code] != ENV["ADMIN_INVITE_CODE"]
+        @admin = AdminUser.new(admin_params)
+        @admin.errors.add(:base, "Invalid invite code.")
+        render :new, status: :unprocessable_entity
+        return
+      end
+
       @admin = AdminUser.new(admin_params)
       if @admin.save
         session[:admin_id] = @admin.id
