@@ -237,6 +237,9 @@
                           </svg>
                         </div>
                       <% end %>
+                      <% if @video.video_duration.present? %>
+                        <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+                      <% end %>
                     </div>
 
                     <!-- Info -->

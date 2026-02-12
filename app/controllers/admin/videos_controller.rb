@@ -58,7 +58,7 @@ module Admin
     end
 
     def video_params
-      params.require(:video).permit(:working_title, :sample_views)
+      params.require(:video).permit(:working_title, :sample_views, :video_duration)
     end
   end
 end

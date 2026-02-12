@@ -11,7 +11,7 @@ class PreviewsController < ApplicationController
     @video = Video.find_by!(share_token: params[:share_token])
     name = params[:voter_name].to_s.strip
     if name.present?
-      cookies.permanent[:voter_name] = name
+      cookies.signed.permanent[:voter_name] = name
       redirect_to preview_path(@video.share_token), notice: "Welcome, #{name}!"
     else
       redirect_to preview_path(@video.share_token), alert: "Please enter a name."

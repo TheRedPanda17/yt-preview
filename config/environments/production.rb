@@ -90,6 +90,11 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Allow Railway's auto-assigned hosts
+  # Allow Railway's auto-assigned hosts and any custom domain via env var.
+  # Set ALLOWED_HOSTS in production (e.g. "myapp.up.railway.app,mycustomdomain.com")
   config.hosts.clear
+  if ENV["ALLOWED_HOSTS"].present?
+    ENV["ALLOWED_HOSTS"].split(",").each { |host| config.hosts << host.strip }
+    config.hosts << /.*\.railway\.app/ # always allow Railway subdomains
+  end
 end

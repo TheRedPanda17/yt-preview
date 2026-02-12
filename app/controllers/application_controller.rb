@@ -15,7 +15,7 @@ class ApplicationController < ActionController::Base
   end
 
   def voter_name
-    cookies[:voter_name]
+    cookies.signed[:voter_name]
   end
   helper_method :voter_name
 end

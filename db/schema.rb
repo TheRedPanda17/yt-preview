@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_12_230244) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_12_300001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -100,6 +100,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_12_230244) do
     t.string "share_token", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "video_duration", default: "10:30"
     t.index ["admin_user_id"], name: "index_videos_on_admin_user_id"
     t.index ["share_token"], name: "index_videos_on_share_token", unique: true
   end

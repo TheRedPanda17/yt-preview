@@ -8,6 +8,7 @@ module Admin
     def create
       admin = AdminUser.find_by(email: params[:email])
       if admin&.authenticate(params[:password])
+        reset_session
         session[:admin_id] = admin.id
         redirect_to admin_videos_path, notice: "Logged in successfully!"
       else

@@ -23,6 +23,7 @@ module Admin
 
       @admin = AdminUser.new(admin_params)
       if @admin.save
+        reset_session
         session[:admin_id] = @admin.id
         redirect_to admin_videos_path, notice: "Account created successfully!"
       else
