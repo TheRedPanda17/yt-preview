@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Installing dependencies..."
+bundle install
+
+echo "Building Tailwind CSS..."
+bundle exec rails tailwindcss:build
+
+echo "Precompiling assets..."
+bundle exec rails assets:precompile
+
+echo "Running migrations..."
+bundle exec rails db:migrate
+
+echo "Build complete!"
