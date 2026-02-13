@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_12_300001) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_13_032116) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -63,6 +63,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_12_300001) do
     t.index ["variant_id"], name: "index_pair_votes_on_variant_id"
   end
 
+  create_table "recipients", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "admin_user_id", null: false
+    t.index ["admin_user_id", "name"], name: "index_recipients_on_admin_user_id_and_name", unique: true
+    t.index ["admin_user_id"], name: "index_recipients_on_admin_user_id"
+  end
+
   create_table "title_thumbnail_pairs", force: :cascade do |t|
     t.bigint "variant_id", null: false
     t.string "title", null: false
@@ -93,6 +102,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_12_300001) do
     t.index ["video_id"], name: "index_variants_on_video_id"
   end
 
+  create_table "video_shares", force: :cascade do |t|
+    t.bigint "video_id", null: false
+    t.bigint "recipient_id", null: false
+    t.string "token", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recipient_id"], name: "index_video_shares_on_recipient_id"
+    t.index ["token"], name: "index_video_shares_on_token", unique: true
+    t.index ["video_id", "recipient_id"], name: "index_video_shares_on_video_id_and_recipient_id", unique: true
+    t.index ["video_id"], name: "index_video_shares_on_video_id"
+  end
+
   create_table "videos", force: :cascade do |t|
     t.bigint "admin_user_id", null: false
     t.string "working_title", null: false
@@ -109,9 +130,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_12_300001) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "pair_votes", "title_thumbnail_pairs"
   add_foreign_key "pair_votes", "variants"
+  add_foreign_key "recipients", "admin_users"
   add_foreign_key "title_thumbnail_pairs", "variants"
   add_foreign_key "variant_votes", "variants"
   add_foreign_key "variant_votes", "videos"
   add_foreign_key "variants", "videos"
+  add_foreign_key "video_shares", "recipients"
+  add_foreign_key "video_shares", "videos"
   add_foreign_key "videos", "admin_users"
 end

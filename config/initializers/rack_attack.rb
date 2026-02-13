@@ -14,11 +14,6 @@ class Rack::Attack
     req.ip if req.path.include?("/vote_") && req.post?
   end
 
-  # Throttle voter identification by IP - 10 attempts per 60 seconds
-  throttle("identify/ip", limit: 10, period: 60.seconds) do |req|
-    req.ip if req.path.include?("/identify") && req.post?
-  end
-
   # Custom response for throttled requests
   self.throttled_responder = lambda do |req|
     [429, { "Content-Type" => "text/html" }, ["Too many requests. Please wait a moment and try again."]]

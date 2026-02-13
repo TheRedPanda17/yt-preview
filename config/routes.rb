@@ -18,7 +18,10 @@ Rails.application.routes.draw do
     get "account", to: "account#edit"
     patch "account", to: "account#update"
 
+    resources :recipients, only: [:index, :create, :destroy]
+
     resources :videos do
+      resources :video_shares, only: [:create, :destroy], path: "shares"
       resources :variants do
         resources :pairs, controller: "pairs" do
           member do
@@ -29,9 +32,11 @@ Rails.application.routes.draw do
     end
   end
 
-  # Public preview & voting
-  get "p/:share_token", to: "previews#show", as: :preview
-  post "p/:share_token/identify", to: "previews#identify", as: :preview_identify
-  post "p/:share_token/vote_variant", to: "votes#vote_variant", as: :vote_variant
-  post "p/:share_token/vote_pair", to: "votes#vote_pair", as: :vote_pair
+  # Public preview & voting (recipient token required)
+  get "p/:share_token/r/:recipient_token", to: "previews#show", as: :preview
+  post "p/:share_token/r/:recipient_token/vote_variant", to: "votes#vote_variant", as: :vote_variant
+  post "p/:share_token/r/:recipient_token/vote_pair", to: "votes#vote_pair", as: :vote_pair
+
+  # Catch requests without recipient token
+  get "p/:share_token", to: "previews#unauthorized", as: :preview_unauthorized
 end

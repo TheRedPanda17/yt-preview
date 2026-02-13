@@ -2,6 +2,8 @@ class Video < ApplicationRecord
   belongs_to :admin_user
   has_many :variants, -> { order(:position) }, dependent: :destroy
   has_many :variant_votes, dependent: :destroy
+  has_many :video_shares, dependent: :destroy
+  has_many :recipients, through: :video_shares
 
   validates :working_title, presence: true
   validates :share_token, presence: true, uniqueness: true

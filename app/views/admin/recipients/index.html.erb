@@ -1,0 +1,65 @@
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Recipients</h1>
+  <p class="text-sm text-gray-500 mt-1">Manage the people you share video previews with. Add them here, then share specific videos from each video's page.</p>
+</div>
+
+<!-- Add recipient -->
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-8">
+  <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+    <h3 class="text-sm font-semibold text-gray-900">Add Recipient</h3>
+  </div>
+  <div class="px-5 py-4">
+    <%= form_with model: Recipient.new, url: admin_recipients_path, method: :post, class: "flex gap-2" do |f| %>
+      <%= f.text_field :name, placeholder: "Name (e.g. John)", required: true, autofocus: true, class: "flex-1 max-w-sm text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      <%= f.submit "Add Recipient", class: "text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer font-medium" %>
+    <% end %>
+  </div>
+</div>
+
+<!-- Recipients list -->
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+    <h3 class="text-sm font-semibold text-gray-900">All Recipients</h3>
+    <p class="text-xs text-gray-500 mt-0.5"><%= @recipients.size %> recipient<%= @recipients.size == 1 ? '' : 's' %></p>
+  </div>
+
+  <% if @recipients.any? %>
+    <div class="divide-y divide-gray-100">
+      <% @recipients.each do |recipient| %>
+        <div class="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+              <%= recipient.name[0].upcase %>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900"><%= recipient.name %></p>
+              <p class="text-xs text-gray-500 mt-0.5">
+                <% share_count = recipient.video_shares.count %>
+                <% if share_count > 0 %>
+                  Shared on <%= share_count %> video<%= share_count == 1 ? '' : 's' %>
+                <% else %>
+                  Not shared on any videos yet
+                <% end %>
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 ml-3">
+            <%= button_to admin_recipient_path(recipient), method: :delete, class: "text-sm text-red-500 hover:text-red-700 font-medium cursor-pointer", data: { turbo_confirm: "Remove #{recipient.name}? This will also remove their access to all shared videos." } do %>
+              Remove
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="px-5 py-12 text-center">
+      <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <p class="text-sm text-gray-500 mb-1">No recipients yet</p>
+      <p class="text-xs text-gray-400">Add people above to start sharing your video previews.</p>
+    </div>
+  <% end %>
+</div>

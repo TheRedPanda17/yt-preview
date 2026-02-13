@@ -2,6 +2,7 @@ class AdminUser < ApplicationRecord
   has_secure_password
 
   has_many :videos, dependent: :destroy
+  has_many :recipients, dependent: :destroy
   has_one_attached :profile_picture
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
