@@ -9,6 +9,7 @@ module Admin
     def show
       @video = current_admin.videos.includes(
         :variant_votes,
+        :vote_feedbacks,
         video_shares: :recipient,
         variants: {
           title_thumbnail_pairs: [:pair_votes, { thumbnail_attachment: :blob }],

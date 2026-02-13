@@ -30,6 +30,18 @@ class VotesController < ApplicationController
     end
   end
 
+  def submit_feedback
+    feedback = @video.vote_feedbacks.find_or_initialize_by(voter_name: voter_name)
+    feedback.interest_score = params[:interest_score]
+    feedback.comments = params[:comments]
+
+    if feedback.save
+      redirect_to preview_path(@video.share_token, @video_share.token), notice: "Thanks for your feedback!"
+    else
+      redirect_to preview_path(@video.share_token, @video_share.token), alert: "Could not save feedback. Please pick an interest level."
+    end
+  end
+
   private
 
   def set_video

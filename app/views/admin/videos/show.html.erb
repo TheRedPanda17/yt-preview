@@ -193,7 +193,7 @@
     </div>
 
     <!-- Individual voter breakdown table -->
-    <div class="px-5 py-4">
+    <div class="px-5 py-4 border-b border-gray-200">
       <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Individual Votes</p>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -248,6 +248,78 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Feedback & Interest Scores -->
+    <% feedbacks = @video.vote_feedbacks.sort_by(&:created_at).reverse %>
+    <div class="px-5 py-4">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Feedback & Interest</p>
+      <% if feedbacks.any? %>
+        <%
+          avg_interest = (feedbacks.sum(&:interest_score).to_f / feedbacks.size).round(1)
+        %>
+        <!-- Average interest bar -->
+        <div class="mb-4 flex items-center gap-3">
+          <span class="text-sm text-gray-700 font-medium w-36">Avg. Interest</span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <% pct = (avg_interest / 10.0 * 100).round %>
+            <%
+              if avg_interest <= 3
+                bar_color = 'bg-red-400'
+              elsif avg_interest <= 5
+                bar_color = 'bg-amber-400'
+              elsif avg_interest <= 7
+                bar_color = 'bg-yellow-400'
+              else
+                bar_color = 'bg-green-500'
+              end
+            %>
+            <div class="<%= bar_color %> h-full rounded-full transition-all flex items-center justify-end pr-2" style="width: <%= [pct, 5].max %>%">
+              <% if pct >= 15 %>
+                <span class="text-xs text-white font-medium"><%= avg_interest %>/10</span>
+              <% end %>
+            </div>
+          </div>
+          <span class="text-sm text-gray-600 w-16 text-right font-medium"><%= avg_interest %>/10</span>
+        </div>
+
+        <!-- Individual feedback entries -->
+        <div class="space-y-3">
+          <% feedbacks.each do |fb| %>
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+              <div class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0 mt-0.5">
+                <%= fb.voter_name[0].upcase %>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-sm font-medium text-gray-900"><%= fb.voter_name %></span>
+                  <%
+                    if fb.interest_score <= 3
+                      score_color = 'bg-red-100 text-red-700'
+                    elsif fb.interest_score <= 5
+                      score_color = 'bg-amber-100 text-amber-700'
+                    elsif fb.interest_score <= 7
+                      score_color = 'bg-yellow-100 text-yellow-700'
+                    else
+                      score_color = 'bg-green-100 text-green-700'
+                    end
+                  %>
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full <%= score_color %>">
+                    Interest: <%= fb.interest_score %>/10
+                  </span>
+                </div>
+                <% if fb.comments.present? %>
+                  <p class="text-sm text-gray-600 leading-relaxed"><%= fb.comments %></p>
+                <% else %>
+                  <p class="text-xs text-gray-400 italic">No additional comments</p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-sm text-gray-400">No feedback submitted yet.</p>
+      <% end %>
     </div>
   </div>
 <% end %>
