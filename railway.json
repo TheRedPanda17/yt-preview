@@ -1,7 +1,7 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "deploy": {
-    "startCommand": "bundle exec rails db:prepare && bundle exec puma -C config/puma.rb",
+    "startCommand": "bundle exec puma -C config/puma.rb",
     "healthcheckPath": "/up",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
