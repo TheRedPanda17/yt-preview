@@ -12,6 +12,26 @@
 
 <!-- Share with Recipients -->
 <% video_shares = @video.video_shares.includes(:recipient).order("recipients.name") %>
+<%
+  # Precompute vote progress for summary
+  variants_with_pairs = @video.variants.select { |v| v.title_thumbnail_pairs.any? }
+  total_pair_slots = variants_with_pairs.size
+  votes_all_done = 0
+  votes_in_progress = 0
+  votes_not_started = 0
+  video_shares.each do |share|
+    name = share.recipient.name
+    has_vv = @video.variant_votes.any? { |v| v.voter_name == name }
+    pv_cast = variants_with_pairs.count { |v| v.pair_votes.any? { |pv| pv.voter_name == name } }
+    if has_vv && pv_cast == total_pair_slots && total_pair_slots > 0
+      votes_all_done += 1
+    elsif has_vv || pv_cast > 0
+      votes_in_progress += 1
+    else
+      votes_not_started += 1
+    end
+  end
+%>
 <details class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-8 group/details">
   <summary class="px-5 py-4 bg-gray-50 flex items-center justify-between cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-gray-100 transition">
     <div class="flex items-center gap-3">
@@ -27,7 +47,22 @@
         </p>
       </div>
     </div>
-    <%= link_to "Manage Recipients", admin_recipients_path, class: "text-xs text-blue-600 hover:text-blue-800 font-medium", onclick: "event.stopPropagation();" %>
+    <div class="flex items-center gap-3">
+      <% if video_shares.any? %>
+        <div class="flex items-center gap-1.5" onclick="event.stopPropagation();">
+          <% if votes_all_done > 0 %>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700"><%= votes_all_done %> complete</span>
+          <% end %>
+          <% if votes_in_progress > 0 %>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><%= votes_in_progress %> in progress</span>
+          <% end %>
+          <% if votes_not_started > 0 %>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"><%= votes_not_started %> pending</span>
+          <% end %>
+        </div>
+      <% end %>
+      <%= link_to "Manage Recipients", admin_recipients_path, class: "text-xs text-blue-600 hover:text-blue-800 font-medium", onclick: "event.stopPropagation();" %>
+    </div>
   </summary>
 
   <div class="px-5 py-4 border-t border-gray-200">
