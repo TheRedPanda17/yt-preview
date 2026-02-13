@@ -216,19 +216,23 @@
 
           <!-- Interest scale 1-10 -->
           <div class="mb-5" data-controller="interest-scale">
-            <label class="block text-sm font-medium text-[#0f0f0f] mb-3">Interest level</label>
-            <div class="flex items-center gap-1">
-              <span class="text-xs text-[#909090] mr-2 w-20 text-right">Not at for me</span>
-              <% (1..10).each do |n| %>
-                <% is_selected = existing_feedback&.interest_score == n %>
-                <label class="relative cursor-pointer" data-interest-scale-target="option">
-                  <input type="radio" name="interest_score" value="<%= n %>" class="sr-only" <%= 'checked' if is_selected %> data-action="change->interest-scale#update">
-                  <div data-display class="w-9 h-9 rounded-lg border-2 border-[#e5e5e5] flex items-center justify-center text-sm font-medium text-[#606060] transition-all hover:border-[#065fd4] hover:text-[#065fd4]">
-                    <%= n %>
-                  </div>
-                </label>
-              <% end %>
-              <span class="text-xs text-[#909090] ml-2 w-20">Can't wait!</span>
+            <label class="block text-sm font-medium text-[#0f0f0f] mb-2">Interest level</label>
+            <div class="max-w-md">
+              <div class="flex justify-between text-xs text-[#909090] mb-2">
+                <span>Not for me</span>
+                <span>Can't wait!</span>
+              </div>
+              <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                <% (1..10).each do |n| %>
+                  <% is_selected = existing_feedback&.interest_score == n %>
+                  <label class="relative cursor-pointer" data-interest-scale-target="option">
+                    <input type="radio" name="interest_score" value="<%= n %>" class="sr-only" <%= 'checked' if is_selected %> data-action="change->interest-scale#update">
+                    <div data-display class="h-9 rounded-lg border-2 border-[#e5e5e5] flex items-center justify-center text-sm font-medium text-[#606060] transition-all hover:border-[#065fd4] hover:text-[#065fd4]">
+                      <%= n %>
+                    </div>
+                  </label>
+                <% end %>
+              </div>
             </div>
           </div>
 
