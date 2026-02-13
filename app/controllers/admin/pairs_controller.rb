@@ -5,6 +5,7 @@ module Admin
 
     def new
       @pair = @variant.title_thumbnail_pairs.build
+      @pair.title = prefill_title
     end
 
     def create
@@ -68,6 +69,23 @@ module Admin
 
     def pair_params
       params.require(:title_thumbnail_pair).permit(:title, :thumbnail_url, :thumbnail)
+    end
+
+    def prefill_title
+      # 1. First title in this variant
+      first_in_variant = @variant.title_thumbnail_pairs.order(:position, :id).first
+      return first_in_variant.title if first_in_variant
+
+      # 2. Any title from any other variant
+      other_pair = TitleThumbnailPair.joins(:variant)
+        .where(variants: { video_id: @video.id })
+        .where.not(variant_id: @variant.id)
+        .order(:position, :id)
+        .first
+      return other_pair.title if other_pair
+
+      # 3. The video's working title
+      @video.working_title
     end
   end
 end
