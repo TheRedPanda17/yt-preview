@@ -244,8 +244,8 @@
 
                     <!-- Info -->
                     <div class="flex gap-3 mt-3">
-                      <% if current_admin.yt_profile_picture_url.present? %>
-                        <img src="<%= current_admin.yt_profile_picture_url %>" class="w-9 h-9 rounded-full flex-shrink-0" alt="">
+                      <% if current_admin.avatar_url %>
+                        <img src="<%= current_admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0" alt="" referrerpolicy="no-referrer">
                       <% else %>
                         <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
                           <%= current_admin.yt_username[0].upcase %>
@@ -269,13 +269,20 @@
                     <% end %>
                   </div>
 
-                  <!-- Edit/Delete overlay -->
-                  <div class="absolute top-2 right-2 hidden group-hover:flex gap-1">
-                    <%= link_to edit_admin_video_variant_pair_path(@video, variant, pair), class: "bg-white/90 backdrop-blur-sm text-gray-700 w-7 h-7 rounded-full flex items-center justify-center hover:bg-white shadow-sm" do %>
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  <!-- Actions -->
+                  <div class="mt-2 flex items-center gap-1">
+                    <%= button_to move_admin_video_variant_pair_path(@video, variant, pair, direction: "up"), method: :patch, class: "text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition cursor-pointer" do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     <% end %>
-                    <%= button_to admin_video_variant_pair_path(@video, variant, pair), method: :delete, class: "bg-white/90 backdrop-blur-sm text-red-600 w-7 h-7 rounded-full flex items-center justify-center hover:bg-white shadow-sm", data: { turbo_confirm: "Delete this pair?" } do %>
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <%= button_to move_admin_video_variant_pair_path(@video, variant, pair, direction: "down"), method: :patch, class: "text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition cursor-pointer" do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    <% end %>
+                    <span class="mx-1 text-gray-200">|</span>
+                    <%= link_to edit_admin_video_variant_pair_path(@video, variant, pair), class: "text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition" do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    <% end %>
+                    <%= button_to admin_video_variant_pair_path(@video, variant, pair), method: :delete, class: "text-red-300 hover:text-red-600 p-1 rounded hover:bg-red-50 transition cursor-pointer", data: { turbo_confirm: "Delete this pair?" } do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     <% end %>
                   </div>
                 </div>

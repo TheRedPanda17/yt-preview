@@ -167,8 +167,8 @@
               <!-- Video info (YouTube style) -->
               <div class="flex gap-3">
                 <!-- Channel avatar -->
-                <% if @admin.yt_profile_picture_url.present? %>
-                  <img src="<%= @admin.yt_profile_picture_url %>" class="w-9 h-9 rounded-full flex-shrink-0 mt-1" alt="">
+                <% if @admin.avatar_url %>
+                  <img src="<%= @admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0 mt-1" alt="" referrerpolicy="no-referrer">
                 <% else %>
                   <div class="w-9 h-9 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-sm font-medium flex-shrink-0 mt-1">
                     <%= @admin.yt_username[0].upcase %>

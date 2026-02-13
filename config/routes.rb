@@ -15,9 +15,16 @@ Rails.application.routes.draw do
     post "login", to: "sessions#create"
     delete "logout", to: "sessions#destroy"
 
+    get "account", to: "account#edit"
+    patch "account", to: "account#update"
+
     resources :videos do
       resources :variants do
-        resources :pairs, controller: "pairs"
+        resources :pairs, controller: "pairs" do
+          member do
+            patch :move
+          end
+        end
       end
     end
   end

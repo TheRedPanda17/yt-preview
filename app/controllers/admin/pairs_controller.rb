@@ -1,7 +1,7 @@
 module Admin
   class PairsController < BaseController
     before_action :set_video_and_variant
-    before_action :set_pair, only: [:edit, :update, :destroy]
+    before_action :set_pair, only: [:edit, :update, :destroy, :move]
 
     def new
       @pair = @variant.title_thumbnail_pairs.build
@@ -26,6 +26,28 @@ module Admin
       else
         render :edit, status: :unprocessable_entity
       end
+    end
+
+    def move
+      direction = params[:direction]
+      pairs = @variant.title_thumbnail_pairs.order(:position, :id).to_a
+
+      # Normalize positions first (fix any gaps or duplicates)
+      pairs.each_with_index { |p, i| p.update_column(:position, i) }
+
+      # Reload to get fresh positions
+      pairs = @variant.title_thumbnail_pairs.order(:position, :id).to_a
+      index = pairs.index(@pair)
+
+      if direction == "up" && index > 0
+        pairs[index - 1].update_column(:position, index)
+        @pair.update_column(:position, index - 1)
+      elsif direction == "down" && index < pairs.size - 1
+        pairs[index + 1].update_column(:position, index)
+        @pair.update_column(:position, index + 1)
+      end
+
+      redirect_to admin_video_path(@video), notice: "Pair reordered."
     end
 
     def destroy

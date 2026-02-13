@@ -34,7 +34,7 @@ module Admin
     private
 
     def admin_params
-      params.require(:admin_user).permit(:email, :password, :password_confirmation, :yt_username, :yt_profile_picture_url)
+      params.require(:admin_user).permit(:email, :password, :password_confirmation, :yt_username, :yt_profile_picture_url, :profile_picture)
     end
   end
 end
