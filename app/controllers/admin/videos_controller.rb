@@ -10,18 +10,20 @@ module Admin
       @video = current_admin.videos.includes(
         :variant_votes,
         :vote_feedbacks,
+        :top_picks,
         video_shares: :recipient,
         variants: {
-          title_thumbnail_pairs: [:pair_votes, { thumbnail_attachment: :blob }],
+          title_thumbnail_pairs: [:pair_votes, :top_picks, { thumbnail_attachment: :blob }],
           variant_votes: [],
           pair_votes: []
         }
       ).find(params[:id])
 
-      # Collect all unique voter names across both vote types
+      # Collect all unique voter names across all vote types
       variant_voter_names = @video.variant_votes.map(&:voter_name)
       pair_voter_names = @video.variants.flat_map { |v| v.pair_votes.map(&:voter_name) }
-      @all_voters = (variant_voter_names + pair_voter_names).uniq.sort
+      top_pick_voter_names = @video.top_picks.map(&:voter_name)
+      @all_voters = (variant_voter_names + pair_voter_names + top_pick_voter_names).uniq.sort
     end
 
     def new

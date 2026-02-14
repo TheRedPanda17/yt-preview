@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_13_035231) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_14_000240) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -82,6 +82,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_13_035231) do
     t.index ["variant_id"], name: "index_title_thumbnail_pairs_on_variant_id"
   end
 
+  create_table "top_picks", force: :cascade do |t|
+    t.bigint "video_id", null: false
+    t.bigint "title_thumbnail_pair_id", null: false
+    t.string "voter_name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "position", default: 0, null: false
+    t.index ["title_thumbnail_pair_id"], name: "index_top_picks_on_title_thumbnail_pair_id"
+    t.index ["video_id", "title_thumbnail_pair_id", "voter_name"], name: "index_top_picks_uniqueness", unique: true
+    t.index ["video_id", "voter_name"], name: "index_top_picks_on_video_and_voter"
+    t.index ["video_id"], name: "index_top_picks_on_video_id"
+  end
+
   create_table "variant_votes", force: :cascade do |t|
     t.bigint "video_id", null: false
     t.bigint "variant_id", null: false
@@ -143,6 +156,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_13_035231) do
   add_foreign_key "pair_votes", "variants"
   add_foreign_key "recipients", "admin_users"
   add_foreign_key "title_thumbnail_pairs", "variants"
+  add_foreign_key "top_picks", "title_thumbnail_pairs"
+  add_foreign_key "top_picks", "videos"
   add_foreign_key "variant_votes", "variants"
   add_foreign_key "variant_votes", "videos"
   add_foreign_key "variants", "videos"

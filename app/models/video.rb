@@ -3,6 +3,7 @@ class Video < ApplicationRecord
   has_many :variants, -> { order(:position) }, dependent: :destroy
   has_many :variant_votes, dependent: :destroy
   has_many :vote_feedbacks, dependent: :destroy
+  has_many :top_picks, dependent: :destroy
   has_many :video_shares, dependent: :destroy
   has_many :recipients, through: :video_shares
 

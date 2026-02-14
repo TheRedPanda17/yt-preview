@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   get "p/:share_token/r/:recipient_token", to: "previews#show", as: :preview
   post "p/:share_token/r/:recipient_token/vote_variant", to: "votes#vote_variant", as: :vote_variant
   post "p/:share_token/r/:recipient_token/vote_pair", to: "votes#vote_pair", as: :vote_pair
+  post "p/:share_token/r/:recipient_token/top_picks", to: "votes#vote_top_picks", as: :vote_top_picks
   post "p/:share_token/r/:recipient_token/feedback", to: "votes#submit_feedback", as: :submit_feedback
 
   # Catch requests without recipient token

@@ -1,6 +1,7 @@
 class TitleThumbnailPair < ApplicationRecord
   belongs_to :variant
   has_many :pair_votes, dependent: :destroy
+  has_many :top_picks, dependent: :destroy
 
   has_one_attached :thumbnail
 
