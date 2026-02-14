@@ -1,0 +1,116 @@
+<!-- Done: Thank you page -->
+<%
+  all_pairs = @variants.flat_map(&:title_thumbnail_pairs)
+  pairs_by_id = all_pairs.index_by(&:id)
+%>
+
+<!-- Success banner -->
+<div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden mb-8">
+  <div class="px-6 py-8 text-center">
+    <div class="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
+      <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    </div>
+    <h1 class="text-xl font-bold text-[#0f0f0f] mb-1">You're all done, <%= @recipient.name %>!</h1>
+    <p class="text-sm text-[#606060]">Thanks for your feedback. Here's a summary of your selections.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <!-- Variant Rankings -->
+  <% if @my_variant_votes.any? %>
+    <div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+      <div class="px-5 py-3 border-b border-[#e5e5e5] bg-[#f9f9f9]">
+        <span class="text-sm font-medium text-[#0f0f0f]">Your variant rankings</span>
+      </div>
+      <div class="px-5 py-4 flex items-center gap-4 flex-wrap">
+        <% @my_variant_votes.sort_by(&:position).each do |vv| %>
+          <% variant = @variants.detect { |v| v.id == vv.variant_id } %>
+          <% next unless variant %>
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-full bg-[#065fd4] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+              #<%= vv.position %>
+            </span>
+            <span class="text-sm font-medium text-[#0f0f0f]"><%= variant.name %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Interest level -->
+  <% if @existing_feedback %>
+    <div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+      <div class="px-5 py-3 border-b border-[#e5e5e5] bg-[#f9f9f9]">
+        <span class="text-sm font-medium text-[#0f0f0f]">Your feedback</span>
+      </div>
+      <div class="px-5 py-4">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-sm text-[#606060]">Interest level:</span>
+          <span class="text-lg font-bold text-[#065fd4]"><%= @existing_feedback.interest_score %>/10</span>
+        </div>
+        <% if @existing_feedback.comments.present? %>
+          <p class="text-sm text-[#606060] italic">"<%= @existing_feedback.comments.truncate(200) %>"</p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Top 3 Overall Picks with thumbnails -->
+<% if @my_top_picks.any? %>
+  <div class="mb-8">
+    <h2 class="text-lg font-medium text-[#0f0f0f] mb-4">Your top 3 overall</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
+      <% @my_top_picks.each do |tp| %>
+        <% pair = pairs_by_id[tp.title_thumbnail_pair_id] %>
+        <% next unless pair %>
+        <div class="group">
+          <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-3">
+            <% if pair.has_thumbnail? %>
+              <% if pair.thumbnail.attached? %>
+                <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
+              <% else %>
+                <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+              <% end %>
+            <% else %>
+              <div class="w-full h-full flex items-center justify-center text-[#909090]">
+                <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 16H3V5h18v14zM9.5 13l2.5 3.01L14.5 12l4.5 6H5l4.5-6z"/>
+                </svg>
+              </div>
+            <% end %>
+            <% if @video.video_duration.present? %>
+              <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+            <% end %>
+            <!-- Rank badge -->
+            <div class="absolute top-2 left-2 bg-[#065fd4] text-white text-sm font-bold w-8 h-8 rounded-full flex items-center justify-center z-10 shadow">
+              #<%= tp.position %>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <% if @admin.avatar_url %>
+              <img src="<%= @admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0 mt-1" alt="" referrerpolicy="no-referrer">
+            <% else %>
+              <div class="w-9 h-9 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-sm font-medium flex-shrink-0 mt-1">
+                <%= @admin.yt_username[0].upcase %>
+              </div>
+            <% end %>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-[#0f0f0f] line-clamp-2 mb-1" style="font-size: 14px; font-weight: 500; line-height: 20px;"><%= pair.title %></h3>
+              <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;"><%= @admin.yt_username %></p>
+              <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;"><%= @video.sample_views %> &middot; 1 hour ago</p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<!-- Edit link -->
+<div class="text-center">
+  <%= link_to preview_path(@video.share_token, @video_share.token, step: 1), class: "inline-flex items-center gap-2 text-sm text-[#065fd4] hover:underline" do %>
+    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+    Go back and edit your answers
+  <% end %>
+</div>

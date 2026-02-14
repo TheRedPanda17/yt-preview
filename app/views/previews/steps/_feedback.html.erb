@@ -1,0 +1,55 @@
+<!-- Step 4: Interest rating + feedback form -->
+<div class="mb-6">
+  <h1 class="text-xl font-bold text-[#0f0f0f] mb-1">Step 4: Your feedback</h1>
+  <p class="text-sm text-[#606060]">How interested would you be in watching this video? Any additional thoughts?</p>
+</div>
+
+<div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+  <%= form_tag submit_feedback_path(@video.share_token, @video_share.token), method: :post, class: "px-5 py-5" do %>
+
+    <!-- Interest scale 1-10 -->
+    <div class="mb-5" data-controller="interest-scale">
+      <label class="block text-sm font-medium text-[#0f0f0f] mb-2">Interest level</label>
+      <div class="max-w-md">
+        <div class="flex justify-between text-xs text-[#909090] mb-2">
+          <span>Not for me</span>
+          <span>Can't wait!</span>
+        </div>
+        <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+          <% (1..10).each do |n| %>
+            <% is_selected = @existing_feedback&.interest_score == n %>
+            <label class="relative cursor-pointer" data-interest-scale-target="option">
+              <input type="radio" name="interest_score" value="<%= n %>" class="sr-only" <%= 'checked' if is_selected %> data-action="change->interest-scale#update">
+              <div data-display class="h-9 rounded-lg border-2 border-[#e5e5e5] flex items-center justify-center text-sm font-medium text-[#606060] transition-all hover:border-[#065fd4] hover:text-[#065fd4]">
+                <%= n %>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional comments -->
+    <div class="mb-5">
+      <label for="feedback_comments" class="block text-sm font-medium text-[#0f0f0f] mb-2">Additional feedback <span class="text-[#909090] font-normal">(optional)</span></label>
+      <textarea
+        id="feedback_comments"
+        name="comments"
+        rows="3"
+        class="w-full border border-[#e5e5e5] rounded-lg px-3 py-2 text-sm text-[#0f0f0f] placeholder-[#909090] focus:outline-none focus:border-[#065fd4] focus:ring-1 focus:ring-[#065fd4] resize-none"
+        placeholder="Any thoughts on titles, thumbnails, or the video concept..."><%= @existing_feedback&.comments %></textarea>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <%= link_to preview_path(@video.share_token, @video_share.token, step: 3), class: "inline-flex items-center gap-2 text-sm font-medium text-[#606060] hover:text-[#0f0f0f] transition" do %>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      <% end %>
+
+      <button type="submit" class="inline-flex items-center gap-2 bg-[#065fd4] text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-[#0051b5] transition cursor-pointer">
+        Submit feedback
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </button>
+    </div>
+  <% end %>
+</div>
