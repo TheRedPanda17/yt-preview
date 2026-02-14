@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_14_000240) do
+ActiveRecord::Schema[7.2].define(version: 2026_02_14_000640) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -101,8 +101,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_14_000240) do
     t.string "voter_name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "position", default: 0, null: false
     t.index ["variant_id"], name: "index_variant_votes_on_variant_id"
-    t.index ["video_id", "voter_name"], name: "index_variant_votes_on_video_id_and_voter_name", unique: true
+    t.index ["video_id", "variant_id", "voter_name"], name: "index_variant_votes_on_video_variant_voter", unique: true
+    t.index ["video_id", "voter_name", "position"], name: "index_variant_votes_on_video_voter_position", unique: true
     t.index ["video_id"], name: "index_variant_votes_on_video_id"
   end
 

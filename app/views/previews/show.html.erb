@@ -25,9 +25,11 @@
     <!-- Voting progress checklist -->
     <% if voter_name.present? && @variants.any? %>
       <%
-        has_variant_vote = @video.variant_votes.any? { |v| v.voter_name == voter_name }
-        pair_votes_cast = @variants.count { |v| v.pair_votes.any? { |pv| pv.voter_name == voter_name } }
+        my_variant_votes = @video.variant_votes.select { |v| v.voter_name == voter_name }
+        variant_ranks_count = my_variant_votes.size
         total_variants = @variants.size
+        has_variant_vote = variant_ranks_count == total_variants
+        pair_votes_cast = @variants.count { |v| v.pair_votes.any? { |pv| pv.voter_name == voter_name } }
         all_pairs_voted = pair_votes_cast == total_variants
         top_picks_count = @video.top_picks.select { |tp| tp.voter_name == voter_name }.size
         has_top_picks = top_picks_count == 3
@@ -50,16 +52,16 @@
 
         <!-- Checklist items -->
         <div class="px-5 py-3 space-y-2.5">
-          <!-- Step 1: Favorite variant -->
+          <!-- Step 1: Rank variants -->
           <div class="flex items-start gap-3">
             <% if has_variant_vote %>
               <div class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <svg class="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
               </div>
-              <span class="text-sm text-[#606060] line-through">Pick your overall favorite variant</span>
+              <span class="text-sm text-[#606060] line-through">Rank the variants #1, #2, #3</span>
             <% else %>
               <div class="w-5 h-5 rounded-full border-2 border-[#ccc] flex-shrink-0 mt-0.5"></div>
-              <span class="text-sm text-[#0f0f0f]">Pick your overall favorite variant — scroll through and click "Vote for this variant"</span>
+              <span class="text-sm text-[#0f0f0f]">Rank the variants #1, #2, #3 <span class="text-[#909090]">(<%= variant_ranks_count %>/<%= total_variants %> ranked)</span> — click variant headers in order</span>
             <% end %>
           </div>
 
@@ -105,107 +107,185 @@
       </div>
     <% end %>
 
-    <!-- Variants -->
-    <% @variants.each_with_index do |variant, vi| %>
-      <div class="mb-10">
-        <!-- Variant header -->
-        <% if voter_name.present? %>
-          <% existing_variant_vote = @video.variant_votes.detect { |v| v.voter_name == voter_name } %>
-          <% is_voted = existing_variant_vote&.variant_id == variant.id %>
-          <% has_pair_vote = variant.pair_votes.any? { |pv| pv.voter_name == voter_name } %>
-        <% end %>
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-medium text-[#0f0f0f]"><%= variant.name %></h2>
-          <% if voter_name.present? %>
-            <% if is_voted %>
-              <span class="inline-flex items-center gap-1.5 text-sm font-medium bg-[#065fd4] text-white px-3 py-1.5 rounded-full">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                Your pick
-              </span>
-            <% else %>
-              <%= button_to vote_variant_path(@video.share_token, @video_share.token, variant_id: variant.id), method: :post, class: "inline-flex items-center gap-1.5 text-sm font-medium bg-[#065fd4] text-white hover:bg-[#0051b5] px-3 py-1.5 rounded-full transition cursor-pointer" do %>
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                Vote for this variant
-              <% end %>
-            <% end %>
-          <% end %>
-        </div>
+    <!-- Variants with ranking -->
+    <%
+      variant_vote_positions = {}
+      if voter_name.present?
+        my_variant_votes.each { |vv| variant_vote_positions[vv.variant_id] = vv.position }
+      end
+      all_variants_ranked = voter_name.present? && my_variant_votes.size == @variants.size
+    %>
 
-        <!-- YouTube-style card grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
-          <% variant.title_thumbnail_pairs.each do |pair| %>
-            <% existing_pair_vote = variant.pair_votes.detect { |v| v.voter_name == voter_name } if voter_name.present? %>
-            <% is_pair_voted = existing_pair_vote&.title_thumbnail_pair_id == pair.id if voter_name.present? %>
+    <% if voter_name.present? && @variants.any? %>
+      <div data-controller="variant-rank"
+           data-variant-rank-total-value="<%= @variants.size %>"
+           data-variant-rank-url-value="<%= vote_variant_path(@video.share_token, @video_share.token) %>"
+           data-variant-rank-token-value="<%= form_authenticity_token %>">
 
-            <div class="group">
-              <!-- Thumbnail -->
-              <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-3 cursor-pointer">
-                <% if pair.has_thumbnail? %>
-                  <% if pair.thumbnail.attached? %>
-                    <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
-                  <% else %>
-                    <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
-                  <% end %>
-                <% else %>
-                  <div class="w-full h-full flex items-center justify-center text-[#909090]">
-                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 16H3V5h18v14zM9.5 13l2.5 3.01L14.5 12l4.5 6H5l4.5-6z"/>
-                    </svg>
-                  </div>
-                <% end %>
+        <% @variants.each_with_index do |variant, vi| %>
+          <% vv_position = variant_vote_positions[variant.id] %>
+          <div class="mb-10"
+               data-variant-rank-target="variant"
+               data-variant-id="<%= variant.id %>"
+               data-preselected-position="<%= vv_position || 0 %>">
 
-                <% if @video.video_duration.present? %>
-                  <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
-                <% end %>
-
-                <!-- Hover overlay with vote for pair -->
-                <% if voter_name.present? %>
-                  <% if is_pair_voted %>
-                    <div class="absolute top-2 left-2 bg-[#065fd4] text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 z-10">
-                      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                      Best in variant
-                    </div>
-                  <% else %>
-                    <%= button_to vote_pair_path(@video.share_token, @video_share.token, variant_id: variant.id, pair_id: pair.id), method: :post, class: "absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer" do %>
-                      <span class="bg-white/95 backdrop-blur-sm text-[#0f0f0f] text-xs font-medium px-3 py-1.5 rounded-full shadow-sm">
-                        Vote best in variant
-                      </span>
-                    <% end %>
-                  <% end %>
-                <% end %>
+            <!-- Variant header -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <h2 class="text-lg font-medium text-[#0f0f0f]"><%= variant.name %></h2>
+                <!-- Rank badge -->
+                <span data-rank-badge
+                      class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold cursor-pointer transition-all
+                             <%= vv_position ? 'bg-[#065fd4] text-white' : 'hidden bg-[#e5e5e5] text-[#606060]' %>"
+                      data-action="click->variant-rank#toggle">
+                  <%= vv_position ? "##{vv_position}" : "—" %>
+                </span>
               </div>
-
-              <!-- Video info (YouTube style) -->
-              <div class="flex gap-3">
-                <!-- Channel avatar -->
-                <% if @admin.avatar_url %>
-                  <img src="<%= @admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0 mt-1" alt="" referrerpolicy="no-referrer">
+              <button type="button"
+                      class="inline-flex items-center gap-1.5 text-sm font-medium bg-[#065fd4] text-white hover:bg-[#0051b5] px-3 py-1.5 rounded-full transition cursor-pointer"
+                      data-action="click->variant-rank#toggle">
+                <% if vv_position %>
+                  #<%= vv_position %> — click to change
                 <% else %>
-                  <div class="w-9 h-9 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-sm font-medium flex-shrink-0 mt-1">
-                    <%= @admin.yt_username[0].upcase %>
-                  </div>
+                  Click to rank
                 <% end %>
-
-                <div class="flex-1 min-w-0">
-                  <!-- Title -->
-                  <h3 class="text-[#0f0f0f] line-clamp-2 mb-1" style="font-size: 14px; font-weight: 500; line-height: 20px;">
-                    <%= pair.title %>
-                  </h3>
-                  <!-- Channel name -->
-                  <p class="text-[#606060] flex items-center gap-1" style="font-size: 12px; line-height: 18px;">
-                    <%= @admin.yt_username %>
-                  </p>
-                  <!-- Views + time -->
-                  <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;">
-                    <%= @video.sample_views %> &middot; 1 hour ago
-                  </p>
-                </div>
-              </div>
-
+              </button>
             </div>
+
+            <!-- YouTube-style card grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
+              <% variant.title_thumbnail_pairs.each do |pair| %>
+                <% existing_pair_vote = variant.pair_votes.detect { |v| v.voter_name == voter_name } %>
+                <% is_pair_voted = existing_pair_vote&.title_thumbnail_pair_id == pair.id %>
+
+                <div class="group">
+                  <!-- Thumbnail -->
+                  <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-3 cursor-pointer">
+                    <% if pair.has_thumbnail? %>
+                      <% if pair.thumbnail.attached? %>
+                        <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
+                      <% else %>
+                        <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+                      <% end %>
+                    <% else %>
+                      <div class="w-full h-full flex items-center justify-center text-[#909090]">
+                        <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 16H3V5h18v14zM9.5 13l2.5 3.01L14.5 12l4.5 6H5l4.5-6z"/>
+                        </svg>
+                      </div>
+                    <% end %>
+
+                    <% if @video.video_duration.present? %>
+                      <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+                    <% end %>
+
+                    <!-- Hover overlay with vote for pair -->
+                    <% if is_pair_voted %>
+                      <div class="absolute top-2 left-2 bg-[#065fd4] text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 z-10">
+                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        Best in variant
+                      </div>
+                    <% else %>
+                      <%= button_to vote_pair_path(@video.share_token, @video_share.token, variant_id: variant.id, pair_id: pair.id), method: :post, class: "absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer" do %>
+                        <span class="bg-white/95 backdrop-blur-sm text-[#0f0f0f] text-xs font-medium px-3 py-1.5 rounded-full shadow-sm">
+                          Vote best in variant
+                        </span>
+                      <% end %>
+                    <% end %>
+                  </div>
+
+                  <!-- Video info (YouTube style) -->
+                  <div class="flex gap-3">
+                    <!-- Channel avatar -->
+                    <% if @admin.avatar_url %>
+                      <img src="<%= @admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0 mt-1" alt="" referrerpolicy="no-referrer">
+                    <% else %>
+                      <div class="w-9 h-9 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-sm font-medium flex-shrink-0 mt-1">
+                        <%= @admin.yt_username[0].upcase %>
+                      </div>
+                    <% end %>
+
+                    <div class="flex-1 min-w-0">
+                      <!-- Title -->
+                      <h3 class="text-[#0f0f0f] line-clamp-2 mb-1" style="font-size: 14px; font-weight: 500; line-height: 20px;">
+                        <%= pair.title %>
+                      </h3>
+                      <!-- Channel name -->
+                      <p class="text-[#606060] flex items-center gap-1" style="font-size: 12px; line-height: 18px;">
+                        <%= @admin.yt_username %>
+                      </p>
+                      <!-- Views + time -->
+                      <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;">
+                        <%= @video.sample_views %> &middot; 1 hour ago
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Submit variant rankings -->
+        <div class="mb-10 flex items-center gap-3">
+          <button type="button"
+                  data-variant-rank-target="submitBtn"
+                  data-action="click->variant-rank#submit"
+                  class="inline-flex items-center gap-2 bg-[#065fd4] text-white text-sm font-medium px-5 py-2 rounded-full transition
+                         <%= all_variants_ranked ? 'hover:bg-[#0051b5] cursor-pointer' : 'opacity-50 cursor-not-allowed' %>"
+                  <%= 'disabled' unless all_variants_ranked %>>
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <%= all_variants_ranked ? 'Update variant rankings' : 'Save variant rankings' %>
+          </button>
+          <% if all_variants_ranked %>
+            <span class="text-xs text-green-600 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Rankings saved
+            </span>
           <% end %>
         </div>
       </div>
+    <% else %>
+      <!-- Non-voter view (no ranking UI) -->
+      <% @variants.each do |variant| %>
+        <div class="mb-10">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-medium text-[#0f0f0f]"><%= variant.name %></h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
+            <% variant.title_thumbnail_pairs.each do |pair| %>
+              <div class="group">
+                <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-3">
+                  <% if pair.has_thumbnail? %>
+                    <% if pair.thumbnail.attached? %>
+                      <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
+                    <% else %>
+                      <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+                    <% end %>
+                  <% end %>
+                  <% if @video.video_duration.present? %>
+                    <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+                  <% end %>
+                </div>
+                <div class="flex gap-3">
+                  <% if @admin.avatar_url %>
+                    <img src="<%= @admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0 mt-1" alt="" referrerpolicy="no-referrer">
+                  <% else %>
+                    <div class="w-9 h-9 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-sm font-medium flex-shrink-0 mt-1">
+                      <%= @admin.yt_username[0].upcase %>
+                    </div>
+                  <% end %>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-[#0f0f0f] line-clamp-2 mb-1" style="font-size: 14px; font-weight: 500; line-height: 20px;"><%= pair.title %></h3>
+                    <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;"><%= @admin.yt_username %></p>
+                    <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;"><%= @video.sample_views %> &middot; 1 hour ago</p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     <% end %>
 
     <% if @variants.empty? %>
