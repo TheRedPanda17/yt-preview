@@ -9,9 +9,16 @@
     <h3 class="text-sm font-semibold text-gray-900">Add Recipient</h3>
   </div>
   <div class="px-5 py-4">
-    <%= form_with model: Recipient.new, url: admin_recipients_path, method: :post, class: "flex gap-2" do |f| %>
-      <%= f.text_field :name, placeholder: "Name (e.g. John)", required: true, autofocus: true, class: "flex-1 max-w-sm text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-      <%= f.submit "Add Recipient", class: "text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer font-medium" %>
+    <%= form_with model: Recipient.new, url: admin_recipients_path, method: :post, class: "flex items-end gap-2" do |f| %>
+      <div class="flex-1 max-w-xs">
+        <%= f.label :name, "Name", class: "block text-xs font-medium text-gray-500 mb-1" %>
+        <%= f.text_field :name, placeholder: "e.g. John", required: true, autofocus: true, class: "w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      </div>
+      <div class="flex-1 max-w-lg">
+        <%= f.label :share_url, "Google Messages URL", class: "block text-xs font-medium text-gray-500 mb-1" %>
+        <%= f.text_field :share_url, placeholder: "https://messages.google.com/web/conversations/...", class: "w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      </div>
+      <%= f.submit "Add Recipient", class: "text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer font-medium whitespace-nowrap" %>
     <% end %>
   </div>
 </div>
@@ -26,26 +33,35 @@
   <% if @recipients.any? %>
     <div class="divide-y divide-gray-100">
       <% @recipients.each do |recipient| %>
-        <div class="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition">
-          <div class="flex items-center gap-3 flex-1 min-w-0">
-            <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-              <%= recipient.name[0].upcase %>
+        <div class="px-5 py-4 hover:bg-gray-50 transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                <%= recipient.name[0].upcase %>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900"><%= recipient.name %></p>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  <% share_count = recipient.video_shares.count %>
+                  <% if share_count > 0 %>
+                    Shared on <%= share_count %> video<%= share_count == 1 ? '' : 's' %>
+                  <% else %>
+                    Not shared on any videos yet
+                  <% end %>
+                </p>
+              </div>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900"><%= recipient.name %></p>
-              <p class="text-xs text-gray-500 mt-0.5">
-                <% share_count = recipient.video_shares.count %>
-                <% if share_count > 0 %>
-                  Shared on <%= share_count %> video<%= share_count == 1 ? '' : 's' %>
-                <% else %>
-                  Not shared on any videos yet
-                <% end %>
-              </p>
+            <div class="flex items-center gap-3 ml-3">
+              <%= button_to admin_recipient_path(recipient), method: :delete, class: "text-sm text-red-500 hover:text-red-700 font-medium cursor-pointer", data: { turbo_confirm: "Remove #{recipient.name}? This will also remove their access to all shared videos." } do %>
+                Remove
+              <% end %>
             </div>
           </div>
-          <div class="flex items-center gap-3 ml-3">
-            <%= button_to admin_recipient_path(recipient), method: :delete, class: "text-sm text-red-500 hover:text-red-700 font-medium cursor-pointer", data: { turbo_confirm: "Remove #{recipient.name}? This will also remove their access to all shared videos." } do %>
-              Remove
+          <!-- Editable share URL -->
+          <div class="mt-2 ml-13 pl-[52px]">
+            <%= form_with model: recipient, url: admin_recipient_path(recipient), method: :patch, class: "flex items-center gap-2" do |f| %>
+              <%= f.text_field :share_url, placeholder: "https://messages.google.com/web/conversations/...", value: recipient.share_url, class: "flex-1 max-w-lg text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-600 placeholder-gray-300" %>
+              <%= f.submit "Save", class: "text-xs bg-gray-100 text-gray-600 px-2.5 py-1.5 rounded-lg hover:bg-gray-200 transition cursor-pointer font-medium" %>
             <% end %>
           </div>
         </div>

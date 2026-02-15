@@ -18,7 +18,7 @@ Rails.application.routes.draw do
     get "account", to: "account#edit"
     patch "account", to: "account#update"
 
-    resources :recipients, only: [:index, :create, :destroy]
+    resources :recipients, only: [:index, :create, :update, :destroy]
 
     resources :videos do
       resources :video_shares, only: [:create, :destroy], path: "shares"

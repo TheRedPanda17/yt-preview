@@ -89,24 +89,48 @@
     <% if video_shares.any? %>
       <div class="divide-y divide-gray-100">
         <% video_shares.each do |share| %>
+          <% recipient = share.recipient %>
+          <% voting_url = share.preview_url(request) %>
+          <% voting_message = voting_url %>
+          <% video_message = @video.youtube_url.present? ? "#{@video.youtube_url}#{@video.share_message.present? ? "\n\n#{@video.share_message}" : ''}" : nil %>
           <div class="flex items-center justify-between py-3 group">
             <div class="flex items-center gap-3 flex-1 min-w-0">
               <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                <%= share.recipient.name[0].upcase %>
+                <%= recipient.name[0].upcase %>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900"><%= share.recipient.name %></p>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                  <code class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded select-all truncate max-w-md"><%= share.preview_url(request) %></code>
-                  <%= link_to preview_path(@video.share_token, share.token), target: "_blank", class: "text-xs text-blue-600 hover:text-blue-800 flex-shrink-0" do %>
-                    Open &rarr;
+                <p class="text-sm font-medium text-gray-900"><%= recipient.name %></p>
+                <div class="flex items-center gap-2 mt-1">
+                  <!-- Share voting URL button (always visible) -->
+                  <button
+                    type="button"
+                    onclick="shareWithFeedback(this, '<%= j(recipient.share_url.to_s) %>', '<%= j(voting_message) %>')"
+                    class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md transition cursor-pointer"
+                    title="Share voting link with <%= recipient.name %>"
+                  >
+                    <svg class="w-3.5 h-3.5 share-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                    <svg class="w-3.5 h-3.5 check-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <span class="btn-label">Vote</span>
+                  </button>
+                  <!-- Share video URL button (only if recipient has share URL and video has YouTube URL) -->
+                  <% if recipient.share_url.present? && video_message.present? %>
+                    <button
+                      type="button"
+                      onclick="shareWithFeedback(this, '<%= j(recipient.share_url.to_s) %>', '<%= j(video_message) %>')"
+                      class="inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition cursor-pointer"
+                      title="Share video link with <%= recipient.name %>"
+                    >
+                      <svg class="w-3.5 h-3.5 share-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                      <svg class="w-3.5 h-3.5 check-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      <span class="btn-label">Video</span>
+                    </button>
                   <% end %>
                 </div>
               </div>
             </div>
             <div class="flex items-center gap-2 ml-3">
               <%
-                name = share.recipient.name
+                name = recipient.name
                 variant_rank_count = @video.variant_votes.count { |v| v.voter_name == name }
                 total_variant_count = @video.variants.size
                 has_variant_rankings = variant_rank_count == total_variant_count && total_variant_count > 0
@@ -130,7 +154,7 @@
               <% else %>
                 <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Not yet voted</span>
               <% end %>
-              <%= button_to admin_video_video_share_path(@video, share), method: :delete, class: "text-gray-300 hover:text-red-500 transition p-1 cursor-pointer", data: { turbo_confirm: "Remove #{share.recipient.name}'s access? Their votes will remain." } do %>
+              <%= button_to admin_video_video_share_path(@video, share), method: :delete, class: "text-gray-300 hover:text-red-500 transition p-1 cursor-pointer", data: { turbo_confirm: "Remove #{recipient.name}'s access? Their votes will remain." } do %>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
               <% end %>
             </div>
@@ -453,6 +477,39 @@
     </div>
   </div>
 <% end %>
+
+<script>
+  function shareWithFeedback(btn, shareUrl, message) {
+    var shareIcon = btn.querySelector('.share-icon');
+    var checkIcon = btn.querySelector('.check-icon');
+    var label = btn.querySelector('.btn-label');
+    var originalLabel = label.textContent;
+
+    navigator.clipboard.writeText(message).then(function() {
+      // Show "Copied!" feedback on the button
+      shareIcon.classList.add('hidden');
+      checkIcon.classList.remove('hidden');
+      label.textContent = 'Copied!';
+
+      // Revert after 2 seconds
+      setTimeout(function() {
+        shareIcon.classList.remove('hidden');
+        checkIcon.classList.add('hidden');
+        label.textContent = originalLabel;
+      }, 2000);
+
+      // Open Google Messages conversation if URL is set
+      if (shareUrl && shareUrl.length > 0) {
+        window.open(shareUrl, '_blank');
+      }
+    }).catch(function() {
+      window.prompt('Copy this message:', message);
+      if (shareUrl && shareUrl.length > 0) {
+        window.open(shareUrl, '_blank');
+      }
+    });
+  }
+</script>
 
 <!-- ==================== VARIANTS ==================== -->
 <div class="flex justify-between items-center mb-4">
