@@ -10,12 +10,15 @@
         </svg>
         <span class="text-base font-medium text-[#0f0f0f]">Preview</span>
       </div>
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-medium">
+      <a href="<%= profile_path %>" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#e5e5e5] hover:bg-[#f1f1f1] hover:border-[#ccc] transition" title="View your votes">
+        <div class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-medium">
           <%= @recipient.name[0].upcase %>
         </div>
-        <span class="text-sm text-[#606060]"><%= @recipient.name %></span>
-      </div>
+        <span class="text-sm font-medium text-[#0f0f0f]"><%= @recipient.name %></span>
+        <svg class="w-3.5 h-3.5 text-[#606060]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
     </div>
   </div>
 
