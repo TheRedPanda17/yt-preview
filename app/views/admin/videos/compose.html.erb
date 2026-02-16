@@ -8,7 +8,8 @@
      data-compose-video-id-value="<%= @video.id %>"
      data-compose-variants-value="<%= @video.variants.map { |v| { id: v.id, name: v.name } }.to_json %>"
      data-compose-csrf-value="<%= form_authenticity_token %>"
-     data-compose-create-url-value="<%= create_pair_admin_video_path(@video) %>">
+     data-compose-create-url-value="<%= create_pair_admin_video_path(@video) %>"
+     data-compose-create-variant-url-value="<%= create_variant_inline_admin_video_path(@video) %>">
 
   <!-- Upload / Input Section -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -116,8 +117,15 @@
         </div>
         <div data-compose-target="variantButtons" class="px-6 py-4 space-y-2 max-h-64 overflow-y-auto">
         </div>
-        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end">
-          <button type="button" data-action="click->compose#closeModal" class="text-sm text-gray-600 hover:text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100 transition cursor-pointer">Cancel</button>
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
+          <div class="flex items-center gap-2">
+            <input type="text" data-compose-target="newVariantInput" data-action="keydown.enter->compose#createVariant" placeholder="New variant name…" class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-1.5 border text-sm">
+            <button type="button" data-action="click->compose#createVariant" data-compose-target="createVariantBtn" class="text-sm bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-red-700 transition cursor-pointer whitespace-nowrap">
+              Create & Use
+            </button>
+            <button type="button" data-action="click->compose#closeModal" class="text-sm text-gray-600 hover:text-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer">Cancel</button>
+          </div>
+          <p data-compose-target="variantError" class="text-xs text-red-600 mt-1 hidden"></p>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :create_pair]
+    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :create_pair, :create_variant_inline]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
@@ -101,6 +101,16 @@ module Admin
         redirect_to compose_admin_video_path(@video), notice: "Pair added to #{variant.name}!"
       else
         redirect_to compose_admin_video_path(@video), alert: "Could not save pair: #{pair.errors.full_messages.join(', ')}"
+      end
+    end
+
+    def create_variant_inline
+      variant = @video.variants.build(name: params[:name])
+      variant.position = @video.variants.count
+      if variant.save
+        render json: { id: variant.id, name: variant.name }, status: :created
+      else
+        render json: { error: variant.errors.full_messages.join(", ") }, status: :unprocessable_entity
       end
     end
 

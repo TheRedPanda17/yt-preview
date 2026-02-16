@@ -54,14 +54,16 @@ export default class extends Controller {
   static targets = [
     "fileInput", "thumbnailList", "titleInput", "titleList",
     "emptyState", "previewSection", "previewThumbnail", "previewTitle",
-    "comboLabel", "modal", "variantButtons"
+    "comboLabel", "modal", "variantButtons",
+    "newVariantInput", "createVariantBtn", "variantError"
   ]
 
   static values = {
     videoId: Number,
     variants: Array,
     csrf: String,
-    createUrl: String
+    createUrl: String,
+    createVariantUrl: String
   }
 
   async connect() {
@@ -272,7 +274,7 @@ export default class extends Controller {
     container.innerHTML = ""
 
     if (variants.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No variants yet. Create a variant first from the video page.</p>'
+      container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No variants yet. Create one below.</p>'
     } else {
       variants.forEach(variant => {
         const btn = document.createElement("button")
@@ -291,9 +293,56 @@ export default class extends Controller {
     document.body.style.overflow = "hidden"
   }
 
+  async createVariant(event) {
+    if (event.type === "keydown" && event.key !== "Enter") return
+    event.preventDefault()
+
+    const input = this.newVariantInputTarget
+    const name = input.value.trim()
+    if (!name) return
+
+    const errorEl = this.variantErrorTarget
+    errorEl.classList.add("hidden")
+    this.createVariantBtnTarget.disabled = true
+    this.createVariantBtnTarget.textContent = "Creating…"
+
+    try {
+      const response = await fetch(this.createVariantUrlValue, {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": this.csrfValue,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ name })
+      })
+
+      if (response.ok) {
+        const variant = await response.json()
+        const variants = this.variantsValue
+        variants.push(variant)
+        this.variantsValue = variants
+        input.value = ""
+        this.submitPair(variant.id)
+      } else {
+        const data = await response.json()
+        errorEl.textContent = data.error || "Could not create variant"
+        errorEl.classList.remove("hidden")
+      }
+    } catch (error) {
+      errorEl.textContent = "Something went wrong. Please try again."
+      errorEl.classList.remove("hidden")
+    } finally {
+      this.createVariantBtnTarget.disabled = false
+      this.createVariantBtnTarget.textContent = "Create & Use"
+    }
+  }
+
   closeModal() {
     this.modalTarget.classList.add("hidden")
     document.body.style.overflow = ""
+    this.variantErrorTarget.classList.add("hidden")
+    this.newVariantInputTarget.value = ""
   }
 
   stopPropagation(event) {

@@ -28,6 +28,7 @@ Rails.application.routes.draw do
         get :preview_voting
         get :compose
         post :create_pair
+        post :create_variant_inline
       end
       resources :video_shares, only: [:create, :destroy], path: "shares"
       resources :variants do
