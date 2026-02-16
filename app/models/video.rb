@@ -1,4 +1,6 @@
 class Video < ApplicationRecord
+  STATUSES = %w[voting ended].freeze
+
   belongs_to :admin_user
   has_many :variants, -> { order(:position) }, dependent: :destroy
   has_many :variant_votes, dependent: :destroy
@@ -9,8 +11,29 @@ class Video < ApplicationRecord
 
   validates :working_title, presence: true
   validates :share_token, presence: true, uniqueness: true
+  validates :status, inclusion: { in: STATUSES }
 
   before_validation :generate_share_token, on: :create
+
+  def voting?
+    status == "voting"
+  end
+
+  def ended?
+    status == "ended"
+  end
+
+  def all_pairs
+    TitleThumbnailPair.joins(:variant).where(variants: { video_id: id }).order(:position)
+  end
+
+  def ab_selected_pairs
+    all_pairs.where(ab_selected: true)
+  end
+
+  def ab_winner_pair
+    all_pairs.find_by(ab_winner: true)
+  end
 
   def share_url(request = nil)
     if request

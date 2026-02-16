@@ -1,0 +1,230 @@
+<!-- Results view: shown when voting has ended -->
+<%
+  all_pairs = @variants.flat_map(&:title_thumbnail_pairs)
+  ab_selected = all_pairs.select(&:ab_selected)
+  ab_winner = all_pairs.detect(&:ab_winner)
+
+  # Build lookup for voter's picks
+  my_pair_vote_ids = @my_pair_votes.values.to_set
+  my_top_pick_positions = @my_top_picks.each_with_object({}) { |tp, h| h[tp.title_thumbnail_pair_id] = tp.position }
+%>
+
+<div class="mb-6 text-center">
+  <div class="w-14 h-14 rounded-full bg-purple-600 flex items-center justify-center mx-auto mb-4">
+    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  </div>
+  <h1 class="text-xl font-bold text-[#0f0f0f] mb-1">Voting has ended</h1>
+  <p class="text-sm text-[#606060]">Thanks for participating, <%= @recipient.name %>! Here are the results for <strong><%= @video.working_title %></strong>.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Column 1: All Thumbnails -->
+  <div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+    <div class="px-5 py-3 border-b border-[#e5e5e5] bg-[#f9f9f9]">
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-[#606060] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+        </span>
+        <span class="text-sm font-medium text-[#0f0f0f]">All Thumbnails</span>
+      </div>
+      <p class="text-xs text-[#606060] mt-1"><%= all_pairs.size %> thumbnail<%= all_pairs.size == 1 ? '' : 's' %> submitted</p>
+    </div>
+    <div class="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+      <% all_pairs.each do |pair| %>
+        <%
+          is_my_pair_pick = my_pair_vote_ids.include?(pair.id)
+          top_pick_pos = my_top_pick_positions[pair.id]
+        %>
+        <div class="group">
+          <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-2">
+            <% if pair.has_thumbnail? %>
+              <% if pair.thumbnail.attached? %>
+                <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
+              <% else %>
+                <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+              <% end %>
+            <% else %>
+              <div class="w-full h-full flex items-center justify-center text-[#909090]">
+                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 16H3V5h18v14zM9.5 13l2.5 3.01L14.5 12l4.5 6H5l4.5-6z"/></svg>
+              </div>
+            <% end %>
+            <% if @video.video_duration.present? %>
+              <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+            <% end %>
+            <% if is_my_pair_pick || top_pick_pos %>
+              <div class="absolute top-2 left-2 flex gap-1 z-10">
+                <% if is_my_pair_pick %>
+                  <span class="bg-[#065fd4] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">Your pick</span>
+                <% end %>
+                <% if top_pick_pos %>
+                  <span class="bg-[#065fd4] text-white text-xs font-bold w-6 h-6 rounded-full shadow flex items-center justify-center">#<%= top_pick_pos %></span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+          <div class="flex gap-2">
+            <% if @admin.avatar_url %>
+              <img src="<%= @admin.avatar_url %>" class="w-7 h-7 rounded-full flex-shrink-0 mt-0.5" alt="" referrerpolicy="no-referrer">
+            <% else %>
+              <div class="w-7 h-7 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-xs font-medium flex-shrink-0 mt-0.5">
+                <%= @admin.yt_username[0].upcase %>
+              </div>
+            <% end %>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-[#0f0f0f] line-clamp-2" style="font-size: 13px; font-weight: 500; line-height: 18px;"><%= pair.title %></h3>
+              <p class="text-[#606060]" style="font-size: 11px; line-height: 16px;"><%= @admin.yt_username %></p>
+              <p class="text-[#606060]" style="font-size: 11px; line-height: 16px;"><%= @video.sample_views %> &middot; 1 hour ago</p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Column 2: Selected for A/B Testing -->
+  <div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+    <div class="px-5 py-3 border-b border-[#e5e5e5] bg-blue-50">
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-[#065fd4] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+        </span>
+        <span class="text-sm font-medium text-[#0f0f0f]">Selected for A/B Test</span>
+      </div>
+      <% if ab_selected.any? %>
+        <p class="text-xs text-[#606060] mt-1"><%= ab_selected.size %> thumbnail<%= ab_selected.size == 1 ? '' : 's' %> tested on YouTube</p>
+      <% else %>
+        <p class="text-xs text-[#606060] mt-1">Not yet announced</p>
+      <% end %>
+    </div>
+    <div class="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+      <% if ab_selected.any? %>
+        <% ab_selected.each do |pair| %>
+          <%
+            is_my_pair_pick = my_pair_vote_ids.include?(pair.id)
+            top_pick_pos = my_top_pick_positions[pair.id]
+          %>
+          <div class="group">
+            <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-2 ring-2 ring-[#065fd4] ring-offset-1">
+              <% if pair.has_thumbnail? %>
+                <% if pair.thumbnail.attached? %>
+                  <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
+                <% else %>
+                  <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+                <% end %>
+              <% else %>
+                <div class="w-full h-full flex items-center justify-center text-[#909090]">
+                  <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 16H3V5h18v14zM9.5 13l2.5 3.01L14.5 12l4.5 6H5l4.5-6z"/></svg>
+                </div>
+              <% end %>
+              <% if @video.video_duration.present? %>
+                <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+              <% end %>
+              <div class="absolute top-2 left-2 flex gap-1 z-10">
+                <span class="bg-[#065fd4] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">A/B</span>
+                <% if is_my_pair_pick %>
+                  <span class="bg-purple-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">Your pick</span>
+                <% end %>
+                <% if top_pick_pos %>
+                  <span class="bg-purple-600 text-white text-xs font-bold w-6 h-6 rounded-full shadow flex items-center justify-center">#<%= top_pick_pos %></span>
+                <% end %>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <% if @admin.avatar_url %>
+                <img src="<%= @admin.avatar_url %>" class="w-7 h-7 rounded-full flex-shrink-0 mt-0.5" alt="" referrerpolicy="no-referrer">
+              <% else %>
+                <div class="w-7 h-7 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-xs font-medium flex-shrink-0 mt-0.5">
+                  <%= @admin.yt_username[0].upcase %>
+                </div>
+              <% end %>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-[#0f0f0f] line-clamp-2" style="font-size: 13px; font-weight: 500; line-height: 18px;"><%= pair.title %></h3>
+                <p class="text-[#606060]" style="font-size: 11px; line-height: 16px;"><%= @admin.yt_username %></p>
+                <p class="text-[#606060]" style="font-size: 11px; line-height: 16px;"><%= @video.sample_views %> &middot; 1 hour ago</p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center py-8">
+          <svg class="w-10 h-10 text-[#ccc] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <p class="text-sm text-[#909090]">A/B test selections haven't been announced yet.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Column 3: Winner -->
+  <div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+    <div class="px-5 py-3 border-b border-[#e5e5e5] bg-green-50">
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-green-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        </span>
+        <span class="text-sm font-medium text-[#0f0f0f]">Winner</span>
+      </div>
+      <% if ab_winner %>
+        <p class="text-xs text-[#606060] mt-1">This thumbnail won the A/B test!</p>
+      <% else %>
+        <p class="text-xs text-[#606060] mt-1">Not yet announced</p>
+      <% end %>
+    </div>
+    <div class="p-4 max-h-[75vh] overflow-y-auto">
+      <% if ab_winner %>
+        <%
+          is_my_pair_pick = my_pair_vote_ids.include?(ab_winner.id)
+          top_pick_pos = my_top_pick_positions[ab_winner.id]
+        %>
+        <div class="group">
+          <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-2 ring-2 ring-green-500 ring-offset-1">
+            <% if ab_winner.has_thumbnail? %>
+              <% if ab_winner.thumbnail.attached? %>
+                <%= image_tag ab_winner.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
+              <% else %>
+                <img src="<%= ab_winner.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+              <% end %>
+            <% else %>
+              <div class="w-full h-full flex items-center justify-center text-[#909090]">
+                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 16H3V5h18v14zM9.5 13l2.5 3.01L14.5 12l4.5 6H5l4.5-6z"/></svg>
+              </div>
+            <% end %>
+            <% if @video.video_duration.present? %>
+              <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+            <% end %>
+            <div class="absolute top-2 left-2 flex gap-1 z-10">
+              <span class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                Winner
+              </span>
+              <% if is_my_pair_pick %>
+                <span class="bg-purple-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">Your pick</span>
+              <% end %>
+              <% if top_pick_pos %>
+                <span class="bg-purple-600 text-white text-xs font-bold w-6 h-6 rounded-full shadow flex items-center justify-center">#<%= top_pick_pos %></span>
+              <% end %>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <% if @admin.avatar_url %>
+              <img src="<%= @admin.avatar_url %>" class="w-7 h-7 rounded-full flex-shrink-0 mt-0.5" alt="" referrerpolicy="no-referrer">
+            <% else %>
+              <div class="w-7 h-7 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-xs font-medium flex-shrink-0 mt-0.5">
+                <%= @admin.yt_username[0].upcase %>
+              </div>
+            <% end %>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-[#0f0f0f] line-clamp-2" style="font-size: 13px; font-weight: 500; line-height: 18px;"><%= ab_winner.title %></h3>
+              <p class="text-[#606060]" style="font-size: 11px; line-height: 16px;"><%= @admin.yt_username %></p>
+              <p class="text-[#606060]" style="font-size: 11px; line-height: 16px;"><%= @video.sample_views %> &middot; 1 hour ago</p>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <svg class="w-10 h-10 text-[#ccc] mx-auto mb-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+          <p class="text-sm text-[#909090]">The winner hasn't been announced yet.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

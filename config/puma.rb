@@ -28,7 +28,7 @@ threads threads_count, threads_count
 if ENV.fetch("RAILS_ENV", "development") == "production"
   bind "tcp://0.0.0.0:#{ENV.fetch('PORT', 3000)}"
 else
-  port ENV.fetch("PORT", 3000)
+  port ENV.fetch("PORT", 3001)
 end
 
 # Allow puma to be restarted by `bin/rails restart` command.

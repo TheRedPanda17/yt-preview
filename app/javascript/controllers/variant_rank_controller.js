@@ -71,9 +71,11 @@ export default class extends Controller {
         if (isRanked) {
           badge.textContent = `#${rank + 1}`
           badge.classList.remove("hidden", "bg-[#e5e5e5]", "text-[#606060]")
-          badge.classList.add("bg-[#065fd4]", "text-white")
+          badge.classList.add("inline-flex", "bg-[#065fd4]", "text-white")
         } else {
-          badge.classList.add("hidden")
+          badge.textContent = "—"
+          badge.classList.remove("inline-flex", "bg-[#065fd4]", "text-white")
+          badge.classList.add("hidden", "bg-[#e5e5e5]", "text-[#606060]")
         }
       }
 

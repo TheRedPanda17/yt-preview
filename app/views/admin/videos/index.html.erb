@@ -24,7 +24,14 @@
               Created <%= time_ago_in_words(video.created_at) %> ago
             </p>
           </div>
-          <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono"><%= video.share_token %></span>
+          <div class="flex items-center gap-2">
+            <% if video.ended? %>
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700">Ended</span>
+            <% else %>
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">Voting</span>
+            <% end %>
+            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono"><%= video.share_token %></span>
+          </div>
         </div>
       <% end %>
     <% end %>

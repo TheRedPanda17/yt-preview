@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [:show, :edit, :update, :destroy]
+    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
@@ -53,6 +53,31 @@ module Admin
     def destroy
       @video.destroy
       redirect_to admin_videos_path, notice: "Video deleted."
+    end
+
+    def end_voting
+      @video.update!(status: "ended")
+      redirect_to admin_video_path(@video), notice: "Voting ended. Select the A/B tested variants below."
+    end
+
+    def reopen_voting
+      @video.update!(status: "voting")
+      redirect_to admin_video_path(@video), notice: "Voting reopened."
+    end
+
+    def update_ab_results
+      ab_selected_ids = Array(params[:ab_selected_pair_ids]).map(&:to_i)
+      ab_winner_id = params[:ab_winner_pair_id].presence&.to_i
+
+      all_pairs = @video.variants.flat_map(&:title_thumbnail_pairs)
+      all_pairs.each do |pair|
+        pair.update!(
+          ab_selected: ab_selected_ids.include?(pair.id),
+          ab_winner: pair.id == ab_winner_id
+        )
+      end
+
+      redirect_to admin_video_path(@video), notice: "A/B test results updated."
     end
 
     private

@@ -22,7 +22,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
     <% if @variants.any? %>
-      <% unless @step == "done" %>
+      <% unless @step == "done" || @step == "results" %>
       <!-- Step progress bar -->
       <%
         step_labels = ["Rank Variants", "Pick Favorites", "Top 3", "Feedback"]
@@ -64,6 +64,8 @@
 
       <!-- Step content -->
       <% case @step %>
+      <% when "results" %>
+        <%= render "previews/steps/results" %>
       <% when "1" %>
         <%= render "previews/steps/rank_variants" %>
       <% when "2" %>

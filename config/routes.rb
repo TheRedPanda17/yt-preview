@@ -21,6 +21,11 @@ Rails.application.routes.draw do
     resources :recipients, only: [:index, :create, :update, :destroy]
 
     resources :videos do
+      member do
+        patch :end_voting
+        patch :reopen_voting
+        patch :update_ab_results
+      end
       resources :video_shares, only: [:create, :destroy], path: "shares"
       resources :variants do
         resources :pairs, controller: "pairs" do

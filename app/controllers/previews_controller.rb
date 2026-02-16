@@ -11,15 +11,25 @@ class PreviewsController < ApplicationController
     # Auto-set voter name from recipient
     cookies.signed.permanent[:voter_name] = @recipient.name
 
+    # Precompute voter state (needed for both active voting and results)
+    @my_variant_votes = @video.variant_votes.select { |v| v.voter_name == voter_name }
+    @my_top_picks = @video.top_picks.select { |tp| tp.voter_name == voter_name }.sort_by(&:position)
+    @existing_feedback = @video.vote_feedbacks.detect { |f| f.voter_name == voter_name }
+    @my_pair_votes = @variants.each_with_object({}) do |v, h|
+      pv = v.pair_votes.detect { |pv| pv.voter_name == voter_name }
+      h[v.id] = pv.title_thumbnail_pair_id if pv
+    end
+
+    # If voting has ended, show results page instead of voting flow
+    if @video.ended?
+      @step = "results"
+      return
+    end
+
     # Determine current step
     @step = (params[:step] || "1").to_s
     @variant_index = [(params[:vi] || "0").to_i, 0].max
     @variant_index = [@variant_index, @variants.size - 1].min if @variants.any?
-
-    # Precompute voter state
-    @my_variant_votes = @video.variant_votes.select { |v| v.voter_name == voter_name }
-    @my_top_picks = @video.top_picks.select { |tp| tp.voter_name == voter_name }.sort_by(&:position)
-    @existing_feedback = @video.vote_feedbacks.detect { |f| f.voter_name == voter_name }
 
     # Step counts for progress bar
     @total_variants = @variants.size

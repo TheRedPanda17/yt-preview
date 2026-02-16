@@ -8,6 +8,9 @@ class TitleThumbnailPair < ApplicationRecord
   validates :title, presence: true
   validate :thumbnail_present
 
+  scope :ab_selected, -> { where(ab_selected: true) }
+  scope :ab_winner, -> { where(ab_winner: true) }
+
   def thumbnail_display_url
     if thumbnail.attached?
       thumbnail
