@@ -26,6 +26,8 @@ Rails.application.routes.draw do
         patch :reopen_voting
         patch :update_ab_results
         get :preview_voting
+        get :compose
+        post :create_pair
       end
       resources :video_shares, only: [:create, :destroy], path: "shares"
       resources :variants do

@@ -1,0 +1,125 @@
+<div class="mb-6">
+  <%= link_to "&larr; Back to #{@video.working_title}".html_safe, admin_video_path(@video), class: "text-sm text-gray-500 hover:text-gray-700" %>
+  <h1 class="text-2xl font-bold text-gray-900 mt-2">Create Pairs</h1>
+  <p class="text-sm text-gray-500 mt-1">Upload thumbnails and titles, mix &amp; match, then save the combos you like.</p>
+</div>
+
+<div data-controller="compose"
+     data-compose-video-id-value="<%= @video.id %>"
+     data-compose-variants-value="<%= @video.variants.map { |v| { id: v.id, name: v.name } }.to_json %>"
+     data-compose-csrf-value="<%= form_authenticity_token %>"
+     data-compose-create-url-value="<%= create_pair_admin_video_path(@video) %>">
+
+  <!-- Upload / Input Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Thumbnails -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Thumbnails</h2>
+      <label class="flex items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-red-400 hover:bg-red-50/50 transition">
+        <div class="text-center">
+          <svg class="w-6 h-6 text-gray-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          <span class="text-xs text-gray-500">Click to upload thumbnails</span>
+        </div>
+        <input type="file" accept="image/*" multiple class="hidden" data-compose-target="fileInput" data-action="change->compose#addThumbnails">
+      </label>
+      <div data-compose-target="thumbnailList" class="mt-3 flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- Titles -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Titles</h2>
+      <div class="flex gap-2">
+        <input type="text" data-compose-target="titleInput" data-action="keydown.enter->compose#addTitle" placeholder="Enter a video title…" class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border text-sm">
+        <button type="button" data-action="click->compose#addTitle" class="bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer whitespace-nowrap">Add</button>
+      </div>
+      <div data-compose-target="titleList" class="mt-3 space-y-1.5"></div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div data-compose-target="emptyState" class="text-center py-16 bg-white rounded-xl border border-gray-200 mb-8">
+    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+    <p class="text-gray-500 font-medium">Add at least one thumbnail and one title to start</p>
+    <p class="text-sm text-gray-400 mt-1">You'll be able to mix &amp; match them below</p>
+  </div>
+
+  <!-- Preview Section -->
+  <div data-compose-target="previewSection" class="hidden mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-gray-900">Preview</h2>
+      <div class="text-sm text-gray-500">
+        <span data-compose-target="comboLabel"></span>
+      </div>
+    </div>
+
+    <div class="max-w-xl mx-auto">
+      <!-- Thumbnail with arrows -->
+      <div class="flex items-center gap-3">
+        <button type="button" data-action="click->compose#prevThumbnail" class="flex-shrink-0 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-300 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <div class="flex-1">
+          <div class="relative aspect-video bg-gray-200 rounded-xl overflow-hidden">
+            <img data-compose-target="previewThumbnail" src="" alt="" class="w-full h-full object-cover">
+            <% if @video.video_duration.present? %>
+              <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+            <% end %>
+          </div>
+        </div>
+        <button type="button" data-action="click->compose#nextThumbnail" class="flex-shrink-0 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-300 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+
+      <!-- Title with arrows -->
+      <div class="flex items-center gap-3 mt-3">
+        <button type="button" data-action="click->compose#prevTitle" class="flex-shrink-0 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-300 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <div class="flex-1 flex gap-3">
+          <% if current_admin.avatar_url %>
+            <img src="<%= current_admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0" alt="" referrerpolicy="no-referrer">
+          <% else %>
+            <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+              <%= current_admin.yt_username[0].upcase %>
+            </div>
+          <% end %>
+          <div class="flex-1 min-w-0">
+            <h4 data-compose-target="previewTitle" class="text-sm font-medium text-gray-900 leading-5 line-clamp-2"></h4>
+            <p class="text-xs text-gray-500 mt-1"><%= current_admin.yt_username %></p>
+            <p class="text-xs text-gray-500"><%= @video.sample_views %> &middot; 1 hour ago</p>
+          </div>
+        </div>
+        <button type="button" data-action="click->compose#nextTitle" class="flex-shrink-0 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-300 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+
+      <!-- Save button -->
+      <div class="mt-6 text-center">
+        <button type="button" data-action="click->compose#openVariantModal" class="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          Save as Pair
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Variant Selection Modal -->
+  <div data-compose-target="modal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-action="click->compose#closeModal"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" data-action="click->compose#stopPropagation">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Choose a Variant</h3>
+          <p class="text-sm text-gray-500 mt-0.5">Which variant should this pair be added to?</p>
+        </div>
+        <div data-compose-target="variantButtons" class="px-6 py-4 space-y-2 max-h-64 overflow-y-auto">
+        </div>
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end">
+          <button type="button" data-action="click->compose#closeModal" class="text-sm text-gray-600 hover:text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100 transition cursor-pointer">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

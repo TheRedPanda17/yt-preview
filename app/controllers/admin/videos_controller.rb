@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting]
+    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :create_pair]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
@@ -84,6 +84,24 @@ module Admin
       recipient = current_admin.recipients.find_or_create_by!(name: current_admin.yt_username)
       share = @video.video_shares.find_or_create_by!(recipient: recipient)
       redirect_to share.preview_url(request), allow_other_host: false
+    end
+
+    def compose
+      @video = current_admin.videos.includes(variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } }).find(params[:id])
+    end
+
+    def create_pair
+      variant = @video.variants.find(params[:variant_id])
+      pair = variant.title_thumbnail_pairs.build(
+        title: params[:title],
+        thumbnail: params[:thumbnail]
+      )
+      pair.position = variant.title_thumbnail_pairs.count
+      if pair.save
+        redirect_to compose_admin_video_path(@video), notice: "Pair added to #{variant.name}!"
+      else
+        redirect_to compose_admin_video_path(@video), alert: "Could not save pair: #{pair.errors.full_messages.join(', ')}"
+      end
     end
 
     private
