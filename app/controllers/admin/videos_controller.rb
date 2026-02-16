@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results]
+    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
@@ -78,6 +78,12 @@ module Admin
       end
 
       redirect_to admin_video_path(@video), notice: "A/B test results updated."
+    end
+
+    def preview_voting
+      recipient = current_admin.recipients.find_or_create_by!(name: current_admin.yt_username)
+      share = @video.video_shares.find_or_create_by!(recipient: recipient)
+      redirect_to share.preview_url(request), allow_other_host: false
     end
 
     private
