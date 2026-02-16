@@ -26,7 +26,7 @@
     </div>
 
     <% if @video_shares.any? %>
-      <div class="space-y-5">
+      <div class="space-y-4">
         <% @video_shares.each do |video_share| %>
           <% video = video_share.video %>
           <% admin = video.admin_user %>
