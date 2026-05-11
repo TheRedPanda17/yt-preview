@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="h-full">
+  <head>
+    <title>Channel Preview - <%= @preview_pair.title %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="h-full bg-white text-neutral-950">
+    <div class="min-h-screen">
+      <header class="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-neutral-200 bg-white px-4">
+        <%= link_to channel_preview_admin_video_path(@video), class: "flex h-10 w-10 items-center justify-center rounded-full hover:bg-neutral-100", title: "Choose another preview" do %>
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        <% end %>
+
+        <div class="flex items-center gap-1.5 font-semibold">
+          <svg class="h-7 w-7 text-red-600" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          <span class="text-xl tracking-tight">YouTube</span>
+        </div>
+
+        <div class="mx-auto hidden w-full max-w-xl items-center md:flex">
+          <div class="flex h-10 flex-1 items-center rounded-l-full border border-neutral-300 px-4 text-sm text-neutral-500">Search</div>
+          <div class="flex h-10 w-16 items-center justify-center rounded-r-full border border-l-0 border-neutral-300 bg-neutral-50">
+            <svg class="h-5 w-5 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+        </div>
+
+        <div class="ml-auto flex items-center gap-3">
+          <span class="hidden max-w-xs truncate text-xs text-neutral-500 sm:inline"><%= @preview_pair.variant.name %>: <%= @preview_pair.title %></span>
+          <% if current_admin.avatar_url %>
+            <img src="<%= current_admin.avatar_url %>" class="h-8 w-8 rounded-full" alt="" referrerpolicy="no-referrer">
+          <% else %>
+            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-sm font-medium text-white">
+              <%= current_admin.yt_username[0].upcase %>
+            </div>
+          <% end %>
+        </div>
+      </header>
+
+      <aside class="fixed left-0 top-14 hidden h-[calc(100vh-3.5rem)] w-20 border-r border-neutral-100 bg-white px-2 py-4 lg:block">
+        <div class="space-y-5 text-center text-[10px] text-neutral-700">
+          <div class="rounded-lg bg-neutral-100 px-1 py-3">
+            <svg class="mx-auto mb-1 h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Home
+          </div>
+          <div class="rounded-lg px-1 py-3">
+            <svg class="mx-auto mb-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            Videos
+          </div>
+        </div>
+      </aside>
+
+      <main class="px-5 py-6 lg:ml-20 lg:px-9">
+        <div class="mx-auto w-full" style="max-width: 1284px;">
+        <section class="mb-8">
+          <div class="h-[207px] overflow-hidden rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-700 to-red-700">
+            <% if current_admin.channel_banner_image_url %>
+              <img src="<%= current_admin.channel_banner_image_url %>" class="h-full w-full object-cover" alt="" referrerpolicy="no-referrer">
+            <% end %>
+          </div>
+
+          <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <% if current_admin.avatar_url %>
+              <img src="<%= current_admin.avatar_url %>" class="h-24 w-24 rounded-full sm:h-32 sm:w-32" alt="" referrerpolicy="no-referrer">
+            <% else %>
+              <div class="flex h-24 w-24 items-center justify-center rounded-full bg-red-600 text-4xl font-medium text-white sm:h-32 sm:w-32">
+                <%= current_admin.yt_username[0].upcase %>
+              </div>
+            <% end %>
+
+            <div class="min-w-0">
+              <h1 class="text-3xl font-bold tracking-tight sm:text-4xl"><%= current_admin.yt_username %></h1>
+              <p class="mt-1 text-sm text-neutral-600">
+                @<%= current_admin.yt_username.parameterize.presence || "channel" %>
+                <% if current_admin.subscriber_count.present? %>
+                  &middot; <%= current_admin.subscriber_count %>
+                <% end %>
+                &middot; <%= @channel_videos.size %> videos
+              </p>
+              <p class="mt-2 max-w-2xl text-sm text-neutral-600">Previewing <strong><%= @preview_pair.title %></strong> against your real channel uploads.</p>
+            </div>
+          </div>
+
+          <nav class="mt-6 flex gap-8 border-b border-neutral-200 text-sm font-medium text-neutral-600">
+            <span class="border-b-2 border-neutral-950 px-1 pb-3 text-neutral-950">Videos</span>
+            <span class="px-1 pb-3">Shorts</span>
+            <span class="px-1 pb-3">Live</span>
+            <span class="px-1 pb-3">Playlists</span>
+          </nav>
+        </section>
+
+        <section class="grid grid-cols-1 gap-x-4 gap-y-10 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <article>
+            <div class="relative aspect-video overflow-hidden rounded-xl bg-neutral-200">
+              <% if @preview_pair.thumbnail.attached? %>
+                <%= image_tag @preview_pair.thumbnail, class: "h-full w-full object-cover" %>
+              <% else %>
+                <img src="<%= @preview_pair.thumbnail_url %>" class="h-full w-full object-cover" alt="">
+              <% end %>
+              <% if @video.video_duration.present? %>
+                <span class="absolute bottom-1 right-1 rounded bg-black/85 px-1 text-xs font-medium leading-5 text-white"><%= @video.video_duration %></span>
+              <% end %>
+            </div>
+            <div class="mt-3 min-w-0">
+              <h2 class="line-clamp-2 text-base font-medium leading-5 text-neutral-950"><%= @preview_pair.title %></h2>
+              <p class="mt-1 text-sm text-neutral-600"><%= @video.sample_views %> &middot; Preview</p>
+            </div>
+          </article>
+
+          <% @channel_videos.each do |channel_video| %>
+            <article>
+              <div class="relative aspect-video overflow-hidden rounded-xl bg-neutral-200">
+                <% if channel_video.thumbnail.attached? %>
+                  <%= image_tag channel_video.thumbnail, class: "h-full w-full object-cover" %>
+                <% else %>
+                  <img src="<%= channel_video.thumbnail_url %>" class="h-full w-full object-cover" alt="" loading="lazy">
+                <% end %>
+                <% if channel_video.duration.present? %>
+                  <span class="absolute bottom-1 right-1 rounded bg-black/85 px-1 text-xs font-medium leading-5 text-white"><%= channel_video.duration %></span>
+                <% end %>
+              </div>
+              <div class="mt-3 min-w-0">
+                <h2 class="line-clamp-2 text-base font-medium leading-5 text-neutral-950"><%= channel_video.title %></h2>
+                <p class="mt-1 text-sm text-neutral-600"><%= channel_video.view_count %> &middot; <%= channel_video.published_at_label %></p>
+              </div>
+            </article>
+          <% end %>
+        </section>
+
+        <% if @channel_videos.empty? %>
+          <div class="mt-10 rounded-2xl border border-dashed border-neutral-300 p-8 text-center">
+            <p class="font-medium text-neutral-900">Add channel videos to make this preview useful.</p>
+            <p class="mt-1 text-sm text-neutral-500">They will show up around the preview card just like your YouTube uploads.</p>
+            <%= link_to "Add Channel Videos", admin_channel_videos_path, class: "mt-4 inline-flex rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800" %>
+          </div>
+        <% end %>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

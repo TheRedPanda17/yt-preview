@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto mt-8">
+<div class="max-w-xl mx-auto mt-8">
   <h1 class="text-2xl font-bold text-gray-900 mb-6">Account Settings</h1>
 
   <%= form_with model: @admin, url: admin_account_path, scope: :admin_user, method: :patch, class: "space-y-4" do |f| %>
@@ -18,6 +18,12 @@
     </div>
 
     <div>
+      <%= f.label :subscriber_count, "Subscriber Count", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_field :subscriber_count, placeholder: "e.g. 125K subscribers", class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+      <p class="mt-1 text-xs text-gray-500">Shown on the channel preview page next to the video count.</p>
+    </div>
+
+    <div>
       <%= f.label :profile_picture, "Profile Picture", class: "block text-sm font-medium text-gray-700 mb-1" %>
       <% if @admin.avatar_url %>
         <div class="mb-2 flex items-center gap-3">
@@ -33,6 +39,23 @@
       <%= f.label :yt_profile_picture_url, "Or Profile Picture URL", class: "block text-sm font-medium text-gray-700 mb-1" %>
       <%= f.url_field :yt_profile_picture_url, placeholder: "https://...", class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
       <p class="mt-1 text-xs text-gray-500">Fallback URL if no file is uploaded.</p>
+    </div>
+
+    <div>
+      <%= f.label :channel_banner, "Channel Banner", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <% if @admin.channel_banner_image_url %>
+        <div class="mb-2 overflow-hidden rounded-lg border border-gray-200">
+          <img src="<%= @admin.channel_banner_image_url %>" class="h-24 w-full object-cover" alt="" referrerpolicy="no-referrer">
+        </div>
+      <% end %>
+      <%= f.file_field :channel_banner, accept: "image/*", class: "w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-red-50 file:text-red-700 hover:file:bg-red-100 file:cursor-pointer" %>
+      <p class="mt-1 text-xs text-gray-500">Upload a banner for the YouTube-style channel header.</p>
+    </div>
+
+    <div>
+      <%= f.label :channel_banner_url, "Or Channel Banner URL", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.url_field :channel_banner_url, placeholder: "https://...", class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+      <p class="mt-1 text-xs text-gray-500">Fallback URL if no banner file is uploaded.</p>
     </div>
 
     <div>

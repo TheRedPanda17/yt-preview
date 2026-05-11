@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :channel_preview, :create_pair, :create_variant_inline ]
+    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :channel_preview, :channel_preview_pair, :create_pair, :create_variant_inline ]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
@@ -92,8 +92,20 @@ module Admin
 
     def channel_preview
       @video = current_admin.videos.includes(variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } }).find(params[:id])
+      @preview_pairs = @video.variants.flat_map(&:title_thumbnail_pairs).select(&:has_thumbnail?)
+    end
+
+    def channel_preview_pair
+      @video = current_admin.videos.includes(variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } }).find(params[:id])
+      @preview_pair = @video.variants.flat_map(&:title_thumbnail_pairs).detect { |pair| pair.id == params[:pair_id].to_i }
+
+      unless @preview_pair
+        redirect_to channel_preview_admin_video_path(@video), alert: "Choose a saved preview variant first."
+        return
+      end
+
       @channel_videos = current_admin.channel_videos.with_attached_thumbnail
-      render layout: false
+      render :channel_preview_pair, layout: false
     end
 
     def create_pair

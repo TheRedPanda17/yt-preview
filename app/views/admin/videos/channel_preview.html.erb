@@ -1,172 +1,62 @@
-<%
-  saved_candidates = @video.variants.flat_map do |variant|
-    variant.title_thumbnail_pairs.map do |pair|
-      next unless pair.has_thumbnail?
-
-      {
-        title: pair.title,
-        thumbnailUrl: pair.thumbnail.attached? ? url_for(pair.thumbnail) : pair.thumbnail_url,
-        views: @video.sample_views,
-        duration: @video.video_duration,
-        source: variant.name,
-        label: variant.name
-      }
-    end
-  end.compact
-%>
-
-<!DOCTYPE html>
-<html class="h-full">
-  <head>
-    <title>Channel Preview - <%= @video.working_title %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
-  <body class="h-full bg-white text-neutral-950">
-    <div
-      data-controller="channel-preview"
-      data-channel-preview-video-id-value="<%= @video.id %>"
-      data-channel-preview-saved-candidates-value="<%= saved_candidates.to_json %>"
-      data-channel-preview-default-title-value="<%= @video.working_title %>"
-      data-channel-preview-default-views-value="<%= @video.sample_views %>"
-      data-channel-preview-default-duration-value="<%= @video.video_duration %>"
-      class="min-h-screen pb-44"
-    >
-      <header class="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-neutral-200 bg-white px-4">
-        <%= link_to admin_video_path(@video), class: "flex h-10 w-10 items-center justify-center rounded-full hover:bg-neutral-100", title: "Back to video" do %>
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-        <% end %>
-
-        <div class="flex items-center gap-1.5 font-semibold">
-          <svg class="h-7 w-7 text-red-600" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          <span class="text-xl tracking-tight">YouTube</span>
-        </div>
-
-        <div class="mx-auto hidden w-full max-w-xl items-center md:flex">
-          <div class="flex h-10 flex-1 items-center rounded-l-full border border-neutral-300 px-4 text-sm text-neutral-500">Search</div>
-          <div class="flex h-10 w-16 items-center justify-center rounded-r-full border border-l-0 border-neutral-300 bg-neutral-50">
-            <svg class="h-5 w-5 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          </div>
-        </div>
-
-        <div class="ml-auto flex items-center gap-3">
-          <span class="hidden text-xs text-neutral-500 sm:inline" data-channel-preview-target="selectedLabel">Loading preview...</span>
-          <% if current_admin.avatar_url %>
-            <img src="<%= current_admin.avatar_url %>" class="h-8 w-8 rounded-full" alt="" referrerpolicy="no-referrer">
-          <% else %>
-            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-sm font-medium text-white">
-              <%= current_admin.yt_username[0].upcase %>
-            </div>
-          <% end %>
-        </div>
-      </header>
-
-      <aside class="fixed left-0 top-14 hidden h-[calc(100vh-3.5rem)] w-20 border-r border-neutral-100 bg-white px-2 py-4 lg:block">
-        <div class="space-y-5 text-center text-[10px] text-neutral-700">
-          <div class="rounded-lg bg-neutral-100 px-1 py-3">
-            <svg class="mx-auto mb-1 h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            Home
-          </div>
-          <div class="rounded-lg px-1 py-3">
-            <svg class="mx-auto mb-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-            Videos
-          </div>
-        </div>
-      </aside>
-
-      <main class="mx-auto max-w-[1560px] px-5 py-6 lg:ml-20 lg:px-9">
-        <section class="mb-8">
-          <div class="h-32 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-700 to-red-700 sm:h-40"></div>
-
-          <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
-            <% if current_admin.avatar_url %>
-              <img src="<%= current_admin.avatar_url %>" class="h-24 w-24 rounded-full sm:h-32 sm:w-32" alt="" referrerpolicy="no-referrer">
-            <% else %>
-              <div class="flex h-24 w-24 items-center justify-center rounded-full bg-red-600 text-4xl font-medium text-white sm:h-32 sm:w-32">
-                <%= current_admin.yt_username[0].upcase %>
-              </div>
-            <% end %>
-
-            <div class="min-w-0">
-              <h1 class="text-3xl font-bold tracking-tight sm:text-4xl"><%= current_admin.yt_username %></h1>
-              <p class="mt-1 text-sm text-neutral-600">@<%= current_admin.yt_username.parameterize.presence || "channel" %> &middot; <%= @channel_videos.size %> videos</p>
-              <p class="mt-2 max-w-2xl text-sm text-neutral-600">Previewing <strong><%= @video.working_title %></strong> against your real channel uploads.</p>
-            </div>
-          </div>
-
-          <nav class="mt-6 flex gap-8 border-b border-neutral-200 text-sm font-medium text-neutral-600">
-            <span class="border-b-2 border-neutral-950 px-1 pb-3 text-neutral-950">Videos</span>
-            <span class="px-1 pb-3">Shorts</span>
-            <span class="px-1 pb-3">Live</span>
-            <span class="px-1 pb-3">Playlists</span>
-          </nav>
-        </section>
-
-        <section class="grid grid-cols-1 gap-x-4 gap-y-10 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          <article>
-            <div class="relative aspect-video overflow-hidden rounded-xl bg-neutral-200">
-              <img data-channel-preview-target="previewImage" src="" class="h-full w-full object-cover" alt="">
-              <div data-channel-preview-target="previewPlaceholder" class="absolute inset-0 flex items-center justify-center text-sm text-neutral-500">Choose a thumbnail below</div>
-              <span data-channel-preview-target="previewDuration" class="absolute bottom-1 right-1 hidden rounded bg-black/85 px-1 text-xs font-medium leading-5 text-white"></span>
-            </div>
-            <div class="mt-3 min-w-0">
-              <h2 data-channel-preview-target="previewTitle" class="line-clamp-2 text-base font-medium leading-5 text-neutral-950"><%= @video.working_title %></h2>
-              <p data-channel-preview-target="previewMeta" class="mt-1 text-sm text-neutral-600"><%= @video.sample_views %> &middot; Preview</p>
-            </div>
-          </article>
-
-          <% @channel_videos.each do |channel_video| %>
-            <article>
-              <div class="relative aspect-video overflow-hidden rounded-xl bg-neutral-200">
-                <% if channel_video.thumbnail.attached? %>
-                  <%= image_tag channel_video.thumbnail, class: "h-full w-full object-cover" %>
-                <% else %>
-                  <img src="<%= channel_video.thumbnail_url %>" class="h-full w-full object-cover" alt="" loading="lazy">
-                <% end %>
-                <% if channel_video.duration.present? %>
-                  <span class="absolute bottom-1 right-1 rounded bg-black/85 px-1 text-xs font-medium leading-5 text-white"><%= channel_video.duration %></span>
-                <% end %>
-              </div>
-              <div class="mt-3 min-w-0">
-                <h2 class="line-clamp-2 text-base font-medium leading-5 text-neutral-950"><%= channel_video.title %></h2>
-                <p class="mt-1 text-sm text-neutral-600"><%= channel_video.view_count %> &middot; <%= channel_video.published_at_label %></p>
-              </div>
-            </article>
-          <% end %>
-        </section>
-
-        <% if @channel_videos.empty? %>
-          <div class="mt-10 rounded-2xl border border-dashed border-neutral-300 p-8 text-center">
-            <p class="font-medium text-neutral-900">Add channel videos to make this preview useful.</p>
-            <p class="mt-1 text-sm text-neutral-500">They will show up around the preview card just like your YouTube uploads.</p>
-            <%= link_to "Add Channel Videos", admin_channel_videos_path, class: "mt-4 inline-flex rounded-full bg-neutral-950 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800" %>
-          </div>
-        <% end %>
-      </main>
-
-      <section class="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-800 bg-neutral-950/98 text-white shadow-2xl">
-        <div class="mx-auto max-w-[1560px] px-4 py-3 lg:pl-28 lg:pr-8">
-          <div class="mb-3 flex items-center justify-between gap-4">
-            <div>
-              <h2 class="text-sm font-semibold">Swap Previewed Thumbnail</h2>
-              <p class="text-xs text-neutral-400">Saved variants and pending compose drafts appear here.</p>
-            </div>
-            <%= link_to "Create more pairs", compose_admin_video_path(@video), class: "hidden rounded-full bg-white px-3 py-1.5 text-xs font-medium text-neutral-950 hover:bg-neutral-200 sm:inline-flex" %>
-          </div>
-
-          <div class="flex gap-3 overflow-x-auto pb-1">
-            <div data-channel-preview-target="candidateTray" class="flex gap-3"></div>
-            <div data-channel-preview-target="pendingTray" class="flex gap-3"></div>
-            <div data-channel-preview-target="pendingEmpty" class="hidden flex-shrink-0 rounded-xl border border-dashed border-neutral-800 px-4 py-3 text-xs text-neutral-500">
-              No pending compose drafts found in this browser.
-            </div>
-          </div>
-        </div>
-      </section>
+<div class="mx-auto max-w-5xl">
+  <div class="mb-6 flex items-start justify-between gap-4">
+    <div>
+      <%= link_to "&larr; Back to #{@video.working_title}".html_safe, admin_video_path(@video), class: "text-sm text-gray-500 hover:text-gray-700" %>
+      <h1 class="mt-2 text-2xl font-bold text-gray-900">Choose Channel Preview</h1>
+      <p class="mt-1 text-sm text-gray-500">Select the saved title and thumbnail pair you want to see in the full channel preview.</p>
     </div>
-  </body>
-</html>
+    <%= link_to "Create more pairs", compose_admin_video_path(@video), class: "text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 transition whitespace-nowrap" %>
+  </div>
+
+  <% if @preview_pairs.empty? %>
+    <div class="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
+      <p class="font-medium text-gray-900">No preview variants yet</p>
+      <p class="mt-1 text-sm text-gray-500">Save at least one title and thumbnail pair before opening a channel preview.</p>
+      <%= link_to "Create Pairs", compose_admin_video_path(@video), class: "mt-4 inline-flex rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700" %>
+    </div>
+  <% else %>
+    <div class="space-y-8">
+      <% @video.variants.each do |variant| %>
+        <% pairs = variant.title_thumbnail_pairs.select(&:has_thumbnail?) %>
+        <% next if pairs.empty? %>
+
+        <section class="rounded-xl border border-gray-200 bg-white">
+          <div class="border-b border-gray-200 px-5 py-4">
+            <h2 class="font-semibold text-gray-900"><%= variant.name %></h2>
+            <p class="mt-0.5 text-xs text-gray-500"><%= pairs.size %> preview option<%= pairs.size == 1 ? "" : "s" %></p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
+            <% pairs.each do |pair| %>
+              <%= link_to channel_preview_pair_admin_video_path(@video, pair), class: "group block rounded-xl border border-gray-200 p-3 transition hover:border-gray-300 hover:shadow-sm" do %>
+                <div class="relative aspect-video overflow-hidden rounded-lg bg-gray-200">
+                  <% if pair.thumbnail.attached? %>
+                    <%= image_tag pair.thumbnail, class: "h-full w-full object-cover" %>
+                  <% else %>
+                    <img src="<%= pair.thumbnail_url %>" class="h-full w-full object-cover" alt="" loading="lazy">
+                  <% end %>
+                  <% if @video.video_duration.present? %>
+                    <span class="absolute bottom-1 right-1 rounded bg-black/80 px-1 font-medium text-white" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+                  <% end %>
+                </div>
+                <div class="mt-3 flex gap-3">
+                  <% if current_admin.avatar_url %>
+                    <img src="<%= current_admin.avatar_url %>" class="h-9 w-9 flex-shrink-0 rounded-full" alt="" referrerpolicy="no-referrer">
+                  <% else %>
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-red-600 text-sm font-medium text-white">
+                      <%= current_admin.yt_username[0].upcase %>
+                    </div>
+                  <% end %>
+                  <div class="min-w-0 flex-1">
+                    <h3 class="line-clamp-2 text-sm font-medium leading-5 text-gray-900 group-hover:text-red-700"><%= pair.title %></h3>
+                    <p class="mt-1 text-xs text-gray-500"><%= @video.sample_views %> &middot; Preview</p>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </section>
+      <% end %>
+    </div>
+  <% end %>
+</div>

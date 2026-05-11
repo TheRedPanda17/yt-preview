@@ -16,7 +16,14 @@ module Admin
     private
 
     def account_params
-      params.require(:admin_user).permit(:yt_username, :yt_profile_picture_url, :profile_picture)
+      params.require(:admin_user).permit(
+        :yt_username,
+        :yt_profile_picture_url,
+        :profile_picture,
+        :channel_banner,
+        :channel_banner_url,
+        :subscriber_count
+      )
     end
   end
 end

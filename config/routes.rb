@@ -33,6 +33,7 @@ Rails.application.routes.draw do
         get :preview_voting
         get :compose
         get :channel_preview
+        get "channel_preview/:pair_id", to: "videos#channel_preview_pair", as: :channel_preview_pair
         post :create_pair
         post :create_variant_inline
       end
