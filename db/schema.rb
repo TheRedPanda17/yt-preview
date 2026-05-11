@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_16_155242) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_11_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,6 +50,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_16_155242) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
+  end
+
+  create_table "channel_videos", force: :cascade do |t|
+    t.bigint "admin_user_id", null: false
+    t.string "title", null: false
+    t.string "thumbnail_url"
+    t.string "view_count", default: "1.2K views", null: false
+    t.string "published_at_label", default: "1 day ago", null: false
+    t.string "duration"
+    t.string "youtube_url"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_user_id", "position"], name: "index_channel_videos_on_admin_user_id_and_position"
+    t.index ["admin_user_id"], name: "index_channel_videos_on_admin_user_id"
   end
 
   create_table "pair_votes", force: :cascade do |t|
@@ -160,6 +175,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_16_155242) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "channel_videos", "admin_users"
   add_foreign_key "pair_votes", "title_thumbnail_pairs"
   add_foreign_key "pair_votes", "variants"
   add_foreign_key "recipients", "admin_users"

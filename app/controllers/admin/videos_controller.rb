@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [:show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :create_pair, :create_variant_inline]
+    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :channel_preview, :create_pair, :create_variant_inline ]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
@@ -13,7 +13,7 @@ module Admin
         :top_picks,
         video_shares: :recipient,
         variants: {
-          title_thumbnail_pairs: [:pair_votes, :top_picks, { thumbnail_attachment: :blob }],
+          title_thumbnail_pairs: [ :pair_votes, :top_picks, { thumbnail_attachment: :blob } ],
           variant_votes: [],
           pair_votes: []
         }
@@ -88,6 +88,12 @@ module Admin
 
     def compose
       @video = current_admin.videos.includes(variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } }).find(params[:id])
+    end
+
+    def channel_preview
+      @video = current_admin.videos.includes(variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } }).find(params[:id])
+      @channel_videos = current_admin.channel_videos.with_attached_thumbnail
+      render layout: false
     end
 
     def create_pair

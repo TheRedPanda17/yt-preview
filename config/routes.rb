@@ -18,7 +18,12 @@ Rails.application.routes.draw do
     get "account", to: "account#edit"
     patch "account", to: "account#update"
 
-    resources :recipients, only: [:index, :create, :update, :destroy]
+    resources :recipients, only: [ :index, :create, :update, :destroy ]
+    resources :channel_videos do
+      collection do
+        post :import
+      end
+    end
 
     resources :videos do
       member do
@@ -27,10 +32,11 @@ Rails.application.routes.draw do
         patch :update_ab_results
         get :preview_voting
         get :compose
+        get :channel_preview
         post :create_pair
         post :create_variant_inline
       end
-      resources :video_shares, only: [:create, :destroy], path: "shares"
+      resources :video_shares, only: [ :create, :destroy ], path: "shares"
       resources :variants do
         resources :pairs, controller: "pairs" do
           member do

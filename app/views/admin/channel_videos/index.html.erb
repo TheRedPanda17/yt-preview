@@ -1,0 +1,63 @@
+<div class="flex justify-between items-start mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Channel Videos</h1>
+    <p class="text-sm text-gray-500 mt-1">Real videos from your YouTube channel used as context in Channel Preview.</p>
+  </div>
+  <%= link_to "Add Channel Video", new_admin_channel_video_path, class: "bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition" %>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+  <h2 class="text-sm font-semibold text-gray-900 mb-2">Import From YouTube</h2>
+  <p class="text-sm text-gray-500 mb-4">Paste an individual YouTube video link to import its real title and thumbnail.</p>
+  <%= form_with url: import_admin_channel_videos_path, method: :post, class: "flex flex-col sm:flex-row gap-2" do |f| %>
+    <%= f.url_field :youtube_url, required: true, placeholder: "https://www.youtube.com/watch?v=...", class: "flex-1 rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border text-sm" %>
+    <%= f.submit "Import Video", class: "bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-black transition cursor-pointer" %>
+  <% end %>
+</div>
+
+<% if @channel_videos.empty? %>
+  <div class="text-center py-16 bg-white rounded-xl border border-gray-200">
+    <svg class="mx-auto w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+    <p class="text-gray-500 mb-4">No channel videos yet</p>
+    <%= link_to "Add your first channel video", new_admin_channel_video_path, class: "text-red-600 hover:text-red-700 font-medium text-sm" %>
+  </div>
+<% else %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <% @channel_videos.each do |channel_video| %>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <div class="relative aspect-video bg-gray-200 rounded-xl overflow-hidden">
+          <% if channel_video.thumbnail.attached? %>
+            <%= image_tag channel_video.thumbnail, class: "w-full h-full object-cover" %>
+          <% else %>
+            <img src="<%= channel_video.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+          <% end %>
+          <% if channel_video.duration.present? %>
+            <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= channel_video.duration %></span>
+          <% end %>
+        </div>
+
+        <div class="flex gap-3 mt-3">
+          <% if current_admin.avatar_url %>
+            <img src="<%= current_admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0" alt="" referrerpolicy="no-referrer">
+          <% else %>
+            <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+              <%= current_admin.yt_username[0].upcase %>
+            </div>
+          <% end %>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-sm font-medium text-gray-900 leading-5 line-clamp-2"><%= channel_video.title %></h2>
+            <p class="text-xs text-gray-500 mt-1"><%= current_admin.yt_username %></p>
+            <p class="text-xs text-gray-500"><%= channel_video.view_count %> &middot; <%= channel_video.published_at_label %></p>
+          </div>
+        </div>
+
+        <div class="mt-3 flex items-center gap-2">
+          <%= link_to "Edit", edit_admin_channel_video_path(channel_video), class: "text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md hover:bg-gray-200 transition" %>
+          <%= button_to "Delete", admin_channel_video_path(channel_video), method: :delete, class: "text-xs text-red-500 hover:text-red-700", data: { turbo_confirm: "Delete this channel video?" } %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>
