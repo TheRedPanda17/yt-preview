@@ -1,7 +1,7 @@
 module Admin
   class VariantsController < BaseController
     before_action :set_video
-    before_action :set_variant, only: [:show, :edit, :update, :destroy]
+    before_action :set_variant, only: [:show, :edit, :update, :destroy, :move]
 
     def show
     end
@@ -29,6 +29,26 @@ module Admin
       else
         render :edit, status: :unprocessable_entity
       end
+    end
+
+    def move
+      direction = params[:direction]
+      variants = @video.variants.order(:position, :id).to_a
+
+      variants.each_with_index { |v, i| v.update_column(:position, i) }
+
+      variants = @video.variants.order(:position, :id).to_a
+      index = variants.index(@variant)
+
+      if direction == "up" && index > 0
+        variants[index - 1].update_column(:position, index)
+        @variant.update_column(:position, index - 1)
+      elsif direction == "down" && index < variants.size - 1
+        variants[index + 1].update_column(:position, index)
+        @variant.update_column(:position, index + 1)
+      end
+
+      redirect_to admin_video_path(@video), notice: "Variant reordered."
     end
 
     def destroy

@@ -39,6 +39,9 @@ Rails.application.routes.draw do
       end
       resources :video_shares, only: [ :create, :destroy ], path: "shares"
       resources :variants do
+        member do
+          patch :move
+        end
         resources :pairs, controller: "pairs" do
           member do
             patch :move
