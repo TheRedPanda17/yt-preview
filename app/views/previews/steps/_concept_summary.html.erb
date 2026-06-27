@@ -98,17 +98,35 @@
       <div class="divide-y divide-[#e5e5e5]">
         <% sorted_by_interest.each do |concept| %>
           <% vote = my_votes_by_concept[concept.id] %>
-          <div class="px-5 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3 flex-wrap">
-              <span class="text-sm font-medium text-[#0f0f0f]"><%= concept.name %></span>
-              <% if concept.picked %>
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">Picked</span>
-              <% end %>
-              <% if concept.id == top_rated&.id %>
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#065fd4]/10 text-[#065fd4]">Your top pick</span>
-              <% end %>
+          <div class="px-5 py-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 flex-wrap">
+                <span class="text-sm font-medium text-[#0f0f0f]"><%= concept.name %></span>
+                <% if concept.picked %>
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">Picked</span>
+                <% end %>
+                <% if concept.id == top_rated&.id %>
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#065fd4]/10 text-[#065fd4]">Your top pick</span>
+                <% end %>
+              </div>
+              <span class="text-sm font-medium text-[#606060]"><%= vote.interest_score %>/10</span>
             </div>
-            <span class="text-sm font-medium text-[#606060]"><%= vote.interest_score %>/10</span>
+            <% if vote.concept_thoughts.present? || vote.improvement_suggestions.present? %>
+              <div class="space-y-2 pl-0 sm:pl-1">
+                <% if vote.concept_thoughts.present? %>
+                  <div>
+                    <p class="text-xs font-medium text-[#909090]">What do you think of this concept?</p>
+                    <p class="text-sm text-[#606060] leading-relaxed"><%= vote.concept_thoughts %></p>
+                  </div>
+                <% end %>
+                <% if vote.improvement_suggestions.present? %>
+                  <div>
+                    <p class="text-xs font-medium text-[#909090]">How could the concept, thumbnail, or title be improved?</p>
+                    <p class="text-sm text-[#606060] leading-relaxed"><%= vote.improvement_suggestions %></p>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
           </div>
         <% end %>
       </div>

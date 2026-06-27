@@ -17,9 +17,11 @@ class VotesController < ApplicationController
 
     vote = concept.concept_votes.find_or_initialize_by(voter_name: voter_name)
     vote.interest_score = interest_score
+    vote.concept_thoughts = params[:concept_thoughts]
+    vote.improvement_suggestions = params[:improvement_suggestions]
 
     unless vote.save
-      return redirect_to_concept_step(ci: params[:ci], alert: "Could not record vote.")
+      return redirect_to_concept_step(ci: params[:ci], alert: "Please answer both feedback questions and pick an interest level.")
     end
 
     current_ci = (params[:ci] || "0").to_i
