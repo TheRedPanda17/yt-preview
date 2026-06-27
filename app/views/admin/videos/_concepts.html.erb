@@ -32,10 +32,6 @@
               </span>
             <% end %>
             <span class="text-xs text-gray-500"><%= concept.concept_pairs.size %> pair<%= concept.concept_pairs.size == 1 ? '' : 's' %></span>
-            <% if concept.concept_votes.any? %>
-              <% avg = (concept.concept_votes.sum(&:interest_score).to_f / concept.concept_votes.size).round(1) %>
-              <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"><%= avg %>/10 avg &middot; <%= concept.concept_votes.size %> vote<%= concept.concept_votes.size == 1 ? '' : 's' %></span>
-            <% end %>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0 ml-4">
             <% unless concept.picked %>

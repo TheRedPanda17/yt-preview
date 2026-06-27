@@ -1,0 +1,7 @@
+<%= render "results_header", title: "Voting Results", show_concept_link: true %>
+
+<% if @video.ended? %>
+  <%= render "ab_results_panel" %>
+<% end %>
+
+<%= render "voting_results_panel" %>

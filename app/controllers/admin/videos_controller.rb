@@ -1,34 +1,19 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :begin_concept_planning, :advance_to_voting, :update_ab_results, :preview_voting, :compose, :channel_preview, :channel_preview_pair, :create_pair, :create_variant_inline ]
+    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :begin_concept_planning, :advance_to_voting, :update_ab_results, :preview_voting, :concept_results, :voting_results, :compose, :channel_preview, :channel_preview_pair, :create_pair, :create_variant_inline ]
+    before_action :load_video_with_vote_data, only: [ :show, :concept_results, :voting_results, :update_ab_results ]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
     end
 
     def show
-      @video = current_admin.videos.includes(
-        :variant_votes,
-        :vote_feedbacks,
-        :top_picks,
-        video_shares: :recipient,
-        concepts: {
-          concept_pairs: { thumbnail_attachment: :blob },
-          concept_votes: []
-        },
-        variants: {
-          title_thumbnail_pairs: [ :pair_votes, :top_picks, { thumbnail_attachment: :blob } ],
-          variant_votes: [],
-          pair_votes: []
-        }
-      ).find(params[:id])
+    end
 
-      # Collect all unique voter names across all vote types
-      concept_voter_names = @video.concepts.flat_map { |c| c.concept_votes.map(&:voter_name) }
-      variant_voter_names = @video.variant_votes.map(&:voter_name)
-      pair_voter_names = @video.variants.flat_map { |v| v.pair_votes.map(&:voter_name) }
-      top_pick_voter_names = @video.top_picks.map(&:voter_name)
-      @all_voters = (concept_voter_names + variant_voter_names + pair_voter_names + top_pick_voter_names).uniq.sort
+    def concept_results
+    end
+
+    def voting_results
     end
 
     def new
@@ -62,7 +47,7 @@ module Admin
 
     def end_voting
       @video.update!(status: "ended")
-      redirect_to admin_video_path(@video), notice: "Voting ended. Select the A/B tested variants below."
+      redirect_to voting_results_admin_video_path(@video), notice: "Voting ended. Record A/B test results on the voting results page."
     end
 
     def reopen_voting
@@ -97,7 +82,7 @@ module Admin
         )
       end
 
-      redirect_to admin_video_path(@video), notice: "A/B test results updated."
+      redirect_to voting_results_admin_video_path(@video), notice: "A/B test results updated."
     end
 
     def preview_voting
@@ -153,6 +138,30 @@ module Admin
     end
 
     private
+
+    def load_video_with_vote_data
+      @video = current_admin.videos.includes(
+        :variant_votes,
+        :vote_feedbacks,
+        :top_picks,
+        video_shares: :recipient,
+        concepts: {
+          concept_pairs: { thumbnail_attachment: :blob },
+          concept_votes: []
+        },
+        variants: {
+          title_thumbnail_pairs: [ :pair_votes, :top_picks, { thumbnail_attachment: :blob } ],
+          variant_votes: [],
+          pair_votes: []
+        }
+      ).find(params[:id])
+
+      concept_voter_names = @video.concepts.flat_map { |c| c.concept_votes.map(&:voter_name) }
+      variant_voter_names = @video.variant_votes.map(&:voter_name)
+      pair_voter_names = @video.variants.flat_map { |v| v.pair_votes.map(&:voter_name) }
+      top_pick_voter_names = @video.top_picks.map(&:voter_name)
+      @all_voters = (concept_voter_names + variant_voter_names + pair_voter_names + top_pick_voter_names).uniq.sort
+    end
 
     def set_video
       @video = current_admin.videos.find(params[:id])

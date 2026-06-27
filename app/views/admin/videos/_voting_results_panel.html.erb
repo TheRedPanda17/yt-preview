@@ -1,0 +1,317 @@
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-8">
+  <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+    <h3 class="text-sm font-semibold text-gray-900">Vote Results</h3>
+    <p class="text-xs text-gray-500 mt-0.5">
+      <% if @all_voters.any? %>
+        <%= @all_voters.size %> voter<%= @all_voters.size == 1 ? '' : 's' %>
+      <% else %>
+        No votes yet
+      <% end %>
+    </p>
+  </div>
+
+  <% if @all_voters.any? %>
+<!-- Variant Rankings -->
+<div class="px-5 py-4 border-b border-gray-200">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Variant Rankings</p>
+  <%
+    total_variant_voters = @video.variant_votes.map(&:voter_name).uniq.size
+    variant_scores = @video.variants.map do |v|
+      votes = v.variant_votes
+      score = votes.sum { |vv| vv.position == 1 ? 3 : vv.position == 2 ? 2 : 1 }
+      first_count = votes.count { |vv| vv.position == 1 }
+      second_count = votes.count { |vv| vv.position == 2 }
+      third_count = votes.count { |vv| vv.position == 3 }
+      [v, score, first_count, second_count, third_count]
+    end.sort_by { |_, score, _, _, _| -score }
+    max_variant_score = variant_scores.first&.at(1) || 0
+  %>
+  <% if total_variant_voters > 0 %>
+    <div class="space-y-2">
+      <% variant_scores.each_with_index do |(variant, score, first_count, second_count, third_count), idx| %>
+        <% pct = max_variant_score > 0 ? (score.to_f / max_variant_score * 100).round : 0 %>
+        <% is_leader = idx == 0 && score > 0 %>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-700 w-36 truncate font-medium flex items-center gap-1.5">
+            <% if is_leader %>
+              <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
+            <% end %>
+            <%= variant.name %>
+          </span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <div class="<%= is_leader ? 'bg-green-500' : 'bg-red-400' %> h-full rounded-full transition-all flex items-center pl-2" style="width: <%= [pct, 2].max %>%">
+              <% if pct >= 15 %>
+                <span class="text-xs text-white font-medium"><%= score %>pts</span>
+              <% end %>
+            </div>
+          </div>
+          <span class="text-sm text-gray-500 w-24 text-right whitespace-nowrap" title="#1 x<%= first_count %>, #2 x<%= second_count %>, #3 x<%= third_count %>">
+            <%= score %>pt<%= score == 1 ? '' : 's' %>
+            <span class="text-gray-400 text-[10px] ml-0.5">(<%= first_count %>/<%= second_count %>/<%= third_count %>)</span>
+          </span>
+        </div>
+      <% end %>
+    </div>
+    <p class="text-xs text-gray-400 mt-2"><%= total_variant_voters %> voter<%= total_variant_voters == 1 ? '' : 's' %> ranked &middot; Scoring: #1 = 3pts, #2 = 2pts, #3 = 1pt &middot; Breakdown: (1st/2nd/3rd)</p>
+  <% else %>
+    <p class="text-sm text-gray-400">No variant rankings yet.</p>
+  <% end %>
+</div>
+
+<!-- Per-variant pair results -->
+<div class="px-5 py-4 border-b border-gray-200">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Favorite Pair Per Variant</p>
+  <div class="space-y-4">
+    <% @video.variants.each do |variant| %>
+      <div>
+        <p class="text-sm font-medium text-gray-700 mb-2"><%= variant.name %></p>
+        <% total_pair_votes = variant.pair_votes.size %>
+        <% if total_pair_votes > 0 %>
+          <div class="space-y-1.5">
+            <% variant.title_thumbnail_pairs.sort_by { |p| -p.pair_votes.size }.each do |pair| %>
+              <% pvotes = pair.pair_votes.size %>
+              <% ppct = (pvotes.to_f / total_pair_votes * 100).round %>
+              <% is_pair_leader = pvotes == variant.title_thumbnail_pairs.map { |p| p.pair_votes.size }.max && pvotes > 0 %>
+              <div class="flex items-center gap-3">
+                <% if pair.has_thumbnail? %>
+                  <div class="w-14 h-8 rounded overflow-hidden bg-gray-200 flex-shrink-0">
+                    <% if pair.thumbnail.attached? %>
+                      <%= image_tag pair.thumbnail, class: "w-full h-full object-cover" %>
+                    <% else %>
+                      <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="">
+                    <% end %>
+                  </div>
+                <% end %>
+                <span class="text-xs text-gray-700 w-40 truncate flex items-center gap-1.5" title="<%= pair.title %>">
+                  <% if is_pair_leader %>
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                  <% end %>
+                  <%= pair.title %>
+                </span>
+                <div class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                  <div class="<%= is_pair_leader ? 'bg-green-500' : 'bg-blue-400' %> h-full rounded-full transition-all" style="width: <%= [ppct, 3].max %>%"></div>
+                </div>
+                <span class="text-xs text-gray-500 w-16 text-right"><%= pvotes %> (<%= ppct %>%)</span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-xs text-gray-400">No pair votes yet.</p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Top 3 Overall Rankings -->
+<div class="px-5 py-4 border-b border-gray-200">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Top 3 Overall Rankings</p>
+  <%
+    all_pairs = @video.variants.flat_map(&:title_thumbnail_pairs)
+    total_top_pick_voters = @video.top_picks.map(&:voter_name).uniq.size
+    # Weighted score: #1 = 3pts, #2 = 2pts, #3 = 1pt
+    pair_scores = all_pairs.map do |p|
+      picks = p.top_picks
+      score = picks.sum { |tp| tp.position == 1 ? 3 : tp.position == 2 ? 2 : 1 }
+      first_count = picks.count { |tp| tp.position == 1 }
+      second_count = picks.count { |tp| tp.position == 2 }
+      third_count = picks.count { |tp| tp.position == 3 }
+      [p, score, first_count, second_count, third_count, picks.size]
+    end.sort_by { |_, score, _, _, _, _| -score }
+    max_score = pair_scores.first&.at(1) || 0
+  %>
+  <% if total_top_pick_voters > 0 %>
+    <div class="space-y-2">
+      <% pair_scores.each_with_index do |(pair, score, first_count, second_count, third_count, total), idx| %>
+        <% next if total == 0 %>
+        <% pct = max_score > 0 ? (score.to_f / max_score * 100).round : 0 %>
+        <% is_top3 = idx < 3 %>
+        <div class="flex items-center gap-3">
+          <% if pair.has_thumbnail? %>
+            <div class="w-14 h-8 rounded overflow-hidden bg-gray-200 flex-shrink-0">
+              <% if pair.thumbnail.attached? %>
+                <%= image_tag pair.thumbnail, class: "w-full h-full object-cover" %>
+              <% else %>
+                <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="">
+              <% end %>
+            </div>
+          <% end %>
+          <span class="text-xs text-gray-700 w-40 truncate flex items-center gap-1.5" title="<%= pair.title %>">
+            <% if is_top3 %>
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+            <% end %>
+            <%= pair.title %>
+          </span>
+          <div class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+            <div class="<%= is_top3 ? 'bg-green-500' : 'bg-gray-400' %> h-full rounded-full transition-all" style="width: <%= [pct, 3].max %>%"></div>
+          </div>
+          <span class="text-xs text-gray-500 w-24 text-right whitespace-nowrap" title="#1 x<%= first_count %>, #2 x<%= second_count %>, #3 x<%= third_count %>">
+            <%= score %>pt<%= score == 1 ? '' : 's' %>
+            <span class="text-gray-400 text-[10px] ml-0.5">(<%= first_count %>/<%= second_count %>/<%= third_count %>)</span>
+          </span>
+        </div>
+      <% end %>
+    </div>
+    <p class="text-xs text-gray-400 mt-2"><%= total_top_pick_voters %> voter<%= total_top_pick_voters == 1 ? '' : 's' %> ranked &middot; Scoring: #1 = 3pts, #2 = 2pts, #3 = 1pt &middot; Breakdown: (1st/2nd/3rd)</p>
+  <% else %>
+    <p class="text-sm text-gray-400">No rankings submitted yet.</p>
+  <% end %>
+</div>
+
+<!-- Individual voter breakdown table -->
+<div class="px-5 py-4 border-b border-gray-200">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Individual Votes</p>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left py-2 pr-4 text-xs font-semibold text-gray-500 w-36">Voter</th>
+          <th class="text-left py-2 pr-4 text-xs font-semibold text-gray-500">Variant Ranking</th>
+          <% @video.variants.each do |variant| %>
+            <th class="text-left py-2 pr-4 text-xs font-semibold text-gray-500">Best in "<%= variant.name %>"</th>
+          <% end %>
+          <th class="text-left py-2 pr-4 text-xs font-semibold text-gray-500">Top 3 Picks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @all_voters.each do |name| %>
+          <tr class="border-b border-gray-50 hover:bg-gray-50">
+            <td class="py-2 pr-4">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                  <%= name[0].upcase %>
+                </div>
+                <span class="text-gray-900 font-medium truncate"><%= name %></span>
+              </div>
+            </td>
+            <td class="py-2 pr-4">
+              <% voter_variant_votes = @video.variant_votes.select { |v| v.voter_name == name }.sort_by(&:position) %>
+              <% if voter_variant_votes.any? %>
+                <div class="flex flex-col gap-0.5">
+                  <% voter_variant_votes.each do |vv| %>
+                    <% voted_variant = @video.variants.detect { |v| v.id == vv.variant_id } %>
+                    <span class="text-xs text-gray-700">
+                      <span class="font-semibold text-gray-500">#<%= vv.position %></span> <%= voted_variant&.name || '—' %>
+                    </span>
+                  <% end %>
+                </div>
+              <% else %>
+                <span class="text-xs text-gray-300">—</span>
+              <% end %>
+            </td>
+            <% @video.variants.each do |variant| %>
+              <td class="py-2 pr-4">
+                <% pv = variant.pair_votes.detect { |v| v.voter_name == name } %>
+                <% if pv %>
+                  <% voted_pair = variant.title_thumbnail_pairs.detect { |p| p.id == pv.title_thumbnail_pair_id } %>
+                  <% if voted_pair %>
+                    <span class="text-xs text-gray-700 truncate block max-w-[200px]" title="<%= voted_pair.title %>"><%= truncate(voted_pair.title, length: 40) %></span>
+                  <% else %>
+                    <span class="text-xs text-gray-300">—</span>
+                  <% end %>
+                <% else %>
+                  <span class="text-xs text-gray-300">—</span>
+                <% end %>
+              </td>
+            <% end %>
+            <td class="py-2 pr-4">
+              <% voter_top_picks = @video.top_picks.select { |tp| tp.voter_name == name }.sort_by(&:position) %>
+              <% if voter_top_picks.any? %>
+                <div class="flex flex-col gap-0.5">
+                  <% voter_top_picks.each do |tp| %>
+                    <% picked_pair = all_pairs.detect { |p| p.id == tp.title_thumbnail_pair_id } %>
+                    <% if picked_pair %>
+                      <span class="text-xs text-gray-700 truncate block max-w-[200px]" title="<%= picked_pair.title %>">
+                        <span class="font-semibold text-gray-500">#<%= tp.position %></span> <%= truncate(picked_pair.title, length: 28) %>
+                      </span>
+                    <% end %>
+                  <% end %>
+                </div>
+              <% else %>
+                <span class="text-xs text-gray-300">—</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Feedback & Interest Scores -->
+<% feedbacks = @video.vote_feedbacks.sort_by(&:created_at).reverse %>
+<div class="px-5 py-4">
+  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Feedback & Interest</p>
+  <% if feedbacks.any? %>
+    <%
+      avg_interest = (feedbacks.sum(&:interest_score).to_f / feedbacks.size).round(1)
+    %>
+    <!-- Average interest bar -->
+    <div class="mb-4 flex items-center gap-3">
+      <span class="text-sm text-gray-700 font-medium w-36">Avg. Interest</span>
+      <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+        <% pct = (avg_interest / 10.0 * 100).round %>
+        <%
+          if avg_interest <= 3
+            bar_color = 'bg-red-400'
+          elsif avg_interest <= 5
+            bar_color = 'bg-amber-400'
+          elsif avg_interest <= 7
+            bar_color = 'bg-yellow-400'
+          else
+            bar_color = 'bg-green-500'
+          end
+        %>
+        <div class="<%= bar_color %> h-full rounded-full transition-all flex items-center justify-end pr-2" style="width: <%= [pct, 5].max %>%">
+          <% if pct >= 15 %>
+            <span class="text-xs text-white font-medium"><%= avg_interest %>/10</span>
+          <% end %>
+        </div>
+      </div>
+      <span class="text-sm text-gray-600 w-16 text-right font-medium"><%= avg_interest %>/10</span>
+    </div>
+
+    <!-- Individual feedback entries -->
+    <div class="space-y-3">
+      <% feedbacks.each do |fb| %>
+        <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+          <div class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0 mt-0.5">
+            <%= fb.voter_name[0].upcase %>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-medium text-gray-900"><%= fb.voter_name %></span>
+              <%
+                if fb.interest_score <= 3
+                  score_color = 'bg-red-100 text-red-700'
+                elsif fb.interest_score <= 5
+                  score_color = 'bg-amber-100 text-amber-700'
+                elsif fb.interest_score <= 7
+                  score_color = 'bg-yellow-100 text-yellow-700'
+                else
+                  score_color = 'bg-green-100 text-green-700'
+                end
+              %>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full <%= score_color %>">
+                Interest: <%= fb.interest_score %>/10
+              </span>
+            </div>
+            <% if fb.comments.present? %>
+              <p class="text-sm text-gray-600 leading-relaxed"><%= fb.comments %></p>
+            <% else %>
+              <p class="text-xs text-gray-400 italic">No additional comments</p>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-400">No feedback submitted yet.</p>
+  <% end %>
+</div>
+  <% else %>
+    <div class="px-5 py-12 text-center">
+      <p class="text-sm text-gray-400">No votes yet. Share the preview link to start collecting feedback.</p>
+    </div>
+  <% end %>
+</div>

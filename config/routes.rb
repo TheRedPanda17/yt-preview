@@ -33,6 +33,8 @@ Rails.application.routes.draw do
         patch :advance_to_voting
         patch :update_ab_results
         get :preview_voting
+        get :concept_results
+        get :voting_results
         get :compose
         get :channel_preview
         get "channel_preview/:pair_id", to: "videos#channel_preview_pair", as: :channel_preview_pair
