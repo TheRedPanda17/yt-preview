@@ -55,15 +55,20 @@ export default class extends Controller {
     "fileInput", "thumbnailList", "titleInput", "titleList",
     "emptyState", "previewSection", "previewThumbnail", "previewTitle",
     "comboLabel", "modal", "variantButtons",
-    "newVariantInput", "createVariantBtn", "variantError"
+    "newVariantInput", "createVariantBtn", "variantError",
+    "conceptModal", "conceptButtons",
+    "newConceptInput", "createConceptBtn", "conceptError"
   ]
 
   static values = {
     videoId: Number,
     variants: Array,
+    concepts: Array,
     csrf: String,
     createUrl: String,
-    createVariantUrl: String
+    createConceptUrl: String,
+    createVariantUrl: String,
+    createConceptInlineUrl: String
   }
 
   async connect() {
@@ -269,6 +274,7 @@ export default class extends Controller {
   }
 
   openVariantModal() {
+    this.closeConceptModal()
     const variants = this.variantsValue
     const container = this.variantButtonsTarget
     container.innerHTML = ""
@@ -291,6 +297,87 @@ export default class extends Controller {
 
     this.modalTarget.classList.remove("hidden")
     document.body.style.overflow = "hidden"
+  }
+
+  openConceptModal() {
+    this.closeModal()
+    const concepts = this.conceptsValue
+    const container = this.conceptButtonsTarget
+    container.innerHTML = ""
+
+    if (concepts.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No concepts yet. Create one below.</p>'
+    } else {
+      concepts.forEach(concept => {
+        const btn = document.createElement("button")
+        btn.type = "button"
+        btn.className = "w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-red-300 hover:bg-red-50 transition cursor-pointer flex items-center justify-between group"
+        btn.innerHTML = `
+          <span class="font-medium text-gray-900">${this.escapeHtml(concept.name)}</span>
+          <svg class="w-4 h-4 text-gray-400 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        `
+        btn.addEventListener("click", () => this.submitConceptPair(concept.id))
+        container.appendChild(btn)
+      })
+    }
+
+    this.conceptModalTarget.classList.remove("hidden")
+    document.body.style.overflow = "hidden"
+  }
+
+  async createConcept(event) {
+    if (event.type === "keydown" && event.key !== "Enter") return
+    event.preventDefault()
+
+    const input = this.newConceptInputTarget
+    const name = input.value.trim()
+    if (!name) return
+
+    const errorEl = this.conceptErrorTarget
+    errorEl.classList.add("hidden")
+    this.createConceptBtnTarget.disabled = true
+    this.createConceptBtnTarget.textContent = "Creating…"
+
+    try {
+      const response = await fetch(this.createConceptInlineUrlValue, {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": this.csrfValue,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ name })
+      })
+
+      if (response.ok) {
+        const concept = await response.json()
+        const concepts = this.conceptsValue
+        concepts.push(concept)
+        this.conceptsValue = concepts
+        input.value = ""
+        this.submitConceptPair(concept.id)
+      } else {
+        const data = await response.json()
+        errorEl.textContent = data.error || "Could not create concept"
+        errorEl.classList.remove("hidden")
+      }
+    } catch (error) {
+      errorEl.textContent = "Something went wrong. Please try again."
+      errorEl.classList.remove("hidden")
+    } finally {
+      this.createConceptBtnTarget.disabled = false
+      this.createConceptBtnTarget.textContent = "Create & Use"
+    }
+  }
+
+  closeConceptModal() {
+    if (!this.hasConceptModalTarget) return
+    this.conceptModalTarget.classList.add("hidden")
+    if (this.modalTarget.classList.contains("hidden")) {
+      document.body.style.overflow = ""
+    }
+    if (this.hasConceptErrorTarget) this.conceptErrorTarget.classList.add("hidden")
+    if (this.hasNewConceptInputTarget) this.newConceptInputTarget.value = ""
   }
 
   async createVariant(event) {
@@ -340,7 +427,9 @@ export default class extends Controller {
 
   closeModal() {
     this.modalTarget.classList.add("hidden")
-    document.body.style.overflow = ""
+    if (this.hasConceptModalTarget && this.conceptModalTarget.classList.contains("hidden")) {
+      document.body.style.overflow = ""
+    }
     this.variantErrorTarget.classList.add("hidden")
     this.newVariantInputTarget.value = ""
   }
@@ -350,13 +439,21 @@ export default class extends Controller {
   }
 
   async submitPair(variantId) {
+    await this.submitCombo(this.createUrlValue, "variant_id", variantId)
+  }
+
+  async submitConceptPair(conceptId) {
+    await this.submitCombo(this.createConceptUrlValue, "concept_id", conceptId)
+  }
+
+  async submitCombo(url, idField, idValue) {
     const formData = new FormData()
-    formData.append("variant_id", variantId)
+    formData.append(idField, idValue)
     formData.append("title", this.titles[this.titleIndex])
     formData.append("thumbnail", this.thumbnails[this.thumbIndex].file)
 
     try {
-      const response = await fetch(this.createUrlValue, {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "X-CSRF-Token": this.csrfValue,

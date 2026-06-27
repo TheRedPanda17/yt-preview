@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :begin_concept_planning, :advance_to_voting, :update_ab_results, :preview_voting, :concept_results, :voting_results, :compose, :channel_preview, :channel_preview_pair, :create_pair, :create_variant_inline ]
+    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :begin_concept_planning, :advance_to_voting, :update_ab_results, :preview_voting, :concept_results, :voting_results, :compose, :channel_preview, :channel_preview_pair, :create_pair, :create_concept_pair, :create_variant_inline, :create_concept_inline ]
     before_action :load_video_with_vote_data, only: [ :show, :concept_results, :voting_results, :update_ab_results ]
 
     def index
@@ -92,7 +92,7 @@ module Admin
     end
 
     def compose
-      @video = current_admin.videos.includes(variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } }).find(params[:id])
+      @video = current_admin.videos.includes(:concepts, variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } }).find(params[:id])
     end
 
     def channel_preview
@@ -127,6 +127,20 @@ module Admin
       end
     end
 
+    def create_concept_pair
+      concept = @video.concepts.find(params[:concept_id])
+      pair = concept.concept_pairs.build(
+        title: params[:title],
+        thumbnail: params[:thumbnail]
+      )
+      pair.position = concept.concept_pairs.count
+      if pair.save
+        redirect_to compose_admin_video_path(@video), notice: "Pair added to #{concept.name}!"
+      else
+        redirect_to compose_admin_video_path(@video), alert: "Could not save concept pair: #{pair.errors.full_messages.join(', ')}"
+      end
+    end
+
     def create_variant_inline
       variant = @video.variants.build(name: params[:name])
       variant.position = @video.variants.count
@@ -134,6 +148,16 @@ module Admin
         render json: { id: variant.id, name: variant.name }, status: :created
       else
         render json: { error: variant.errors.full_messages.join(", ") }, status: :unprocessable_entity
+      end
+    end
+
+    def create_concept_inline
+      concept = @video.concepts.build(name: params[:name])
+      concept.position = @video.concepts.count
+      if concept.save
+        render json: { id: concept.id, name: concept.name }, status: :created
+      else
+        render json: { error: concept.errors.full_messages.join(", ") }, status: :unprocessable_entity
       end
     end
 

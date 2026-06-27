@@ -7,9 +7,12 @@
 <div data-controller="compose"
      data-compose-video-id-value="<%= @video.id %>"
      data-compose-variants-value="<%= @video.variants.map { |v| { id: v.id, name: v.name } }.to_json %>"
+     data-compose-concepts-value="<%= @video.concepts.map { |c| { id: c.id, name: c.name } }.to_json %>"
      data-compose-csrf-value="<%= form_authenticity_token %>"
      data-compose-create-url-value="<%= create_pair_admin_video_path(@video) %>"
-     data-compose-create-variant-url-value="<%= create_variant_inline_admin_video_path(@video) %>">
+     data-compose-create-concept-url-value="<%= create_concept_pair_admin_video_path(@video) %>"
+     data-compose-create-variant-url-value="<%= create_variant_inline_admin_video_path(@video) %>"
+     data-compose-create-concept-inline-url-value="<%= create_concept_inline_admin_video_path(@video) %>">
 
   <!-- Upload / Input Section -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -96,12 +99,41 @@
         </button>
       </div>
 
-      <!-- Save button -->
-      <div class="mt-6 text-center">
+      <!-- Save buttons -->
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
         <button type="button" data-action="click->compose#openVariantModal" class="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
           Save as Pair
         </button>
+        <button type="button" data-action="click->compose#openConceptModal" class="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition cursor-pointer shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+          Create Concept
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept Selection Modal -->
+  <div data-compose-target="conceptModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-action="click->compose#closeConceptModal"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" data-action="click->compose#stopPropagation">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Choose a Concept</h3>
+          <p class="text-sm text-gray-500 mt-0.5">Which concept should this pair be added to?</p>
+        </div>
+        <div data-compose-target="conceptButtons" class="px-6 py-4 space-y-2 max-h-64 overflow-y-auto">
+        </div>
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
+          <div class="flex items-center gap-2">
+            <input type="text" data-compose-target="newConceptInput" data-action="keydown.enter->compose#createConcept" placeholder="New concept name…" class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-1.5 border text-sm">
+            <button type="button" data-action="click->compose#createConcept" data-compose-target="createConceptBtn" class="text-sm bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-red-700 transition cursor-pointer whitespace-nowrap">
+              Create & Use
+            </button>
+            <button type="button" data-action="click->compose#closeConceptModal" class="text-sm text-gray-600 hover:text-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer">Cancel</button>
+          </div>
+          <p data-compose-target="conceptError" class="text-xs text-red-600 mt-1 hidden"></p>
+        </div>
       </div>
     </div>
   </div>
