@@ -1,38 +1,46 @@
-<div class="mb-6 flex justify-between items-start">
-  <div>
-    <%= link_to "&larr; Back to videos".html_safe, admin_videos_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
-    <div class="flex items-center gap-3 mt-2">
-      <h1 class="text-2xl font-bold text-gray-900"><%= @video.working_title %></h1>
-      <% if @video.ended? %>
-        <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-purple-100 text-purple-700">Ended</span>
-      <% else %>
-        <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700">Voting</span>
-      <% end %>
+<div class="mb-6">
+  <div class="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-start">
+    <div>
+      <%= link_to "&larr; Back to videos".html_safe, admin_videos_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+      <div class="flex items-center gap-3 mt-2">
+        <h1 class="text-2xl font-bold text-gray-900"><%= @video.working_title %></h1>
+        <% if @video.ended? %>
+          <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-purple-100 text-purple-700">Ended</span>
+        <% elsif @video.concept_planning? %>
+          <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">Concept Planning</span>
+        <% else %>
+          <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700">Voting</span>
+        <% end %>
+      </div>
+      <p class="text-sm text-gray-500 mt-1">Sample views: <%= @video.sample_views %></p>
     </div>
-    <p class="text-sm text-gray-500 mt-1">Sample views: <%= @video.sample_views %></p>
-  </div>
-  <div class="flex gap-2">
-    <% if @video.voting? %>
-      <%= button_to "End Voting", end_voting_admin_video_path(@video), method: :patch, class: "text-sm bg-purple-600 text-white px-3 py-1.5 rounded-md hover:bg-purple-700 transition cursor-pointer", data: { turbo_confirm: "End voting for this video? Voters will see the results page instead." } %>
-    <% else %>
-      <%= button_to "Reopen Voting", reopen_voting_admin_video_path(@video), method: :patch, class: "text-sm bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition cursor-pointer", data: { turbo_confirm: "Reopen voting? Voters will be able to vote again." } %>
-    <% end %>
-    <%= link_to preview_voting_admin_video_path(@video), class: "text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition inline-flex items-center gap-1.5", target: "_blank" do %>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-      Preview Voting Page
-    <% end %>
-    <%= link_to compose_admin_video_path(@video), class: "text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 transition inline-flex items-center gap-1.5" do %>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-      Create Pairs
-    <% end %>
-    <%= link_to channel_preview_admin_video_path(@video), class: "text-sm bg-gray-900 text-white px-3 py-1.5 rounded-md hover:bg-black transition inline-flex items-center gap-1.5" do %>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
-      Channel Preview
-    <% end %>
-    <%= link_to "Edit", edit_admin_video_path(@video), class: "text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 transition" %>
-    <%= button_to "Delete", admin_video_path(@video), method: :delete, class: "text-sm bg-red-50 text-red-600 px-3 py-1.5 rounded-md hover:bg-red-100 transition", data: { turbo_confirm: "Delete this video and all its variants?" } %>
+    <div class="flex flex-wrap gap-2">
+      <% if @video.concept_planning? %>
+        <%= button_to "Advance to Thumbnail Voting", advance_to_voting_admin_video_path(@video), method: :patch, class: "text-sm bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition cursor-pointer", data: { turbo_confirm: "Move to thumbnail voting? Make sure you've picked a concept first." } %>
+      <% elsif @video.voting? %>
+        <%= button_to "End Voting", end_voting_admin_video_path(@video), method: :patch, class: "text-sm bg-purple-600 text-white px-3 py-1.5 rounded-md hover:bg-purple-700 transition cursor-pointer", data: { turbo_confirm: "End voting for this video? Voters will see the results page instead." } %>
+      <% else %>
+        <%= button_to "Reopen Voting", reopen_voting_admin_video_path(@video), method: :patch, class: "text-sm bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition cursor-pointer", data: { turbo_confirm: "Reopen voting? Voters will be able to vote again." } %>
+      <% end %>
+      <%= link_to preview_voting_admin_video_path(@video), class: "text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition inline-flex items-center gap-1.5", target: "_blank" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+        Preview Voting Page
+      <% end %>
+      <%= link_to compose_admin_video_path(@video), class: "text-sm bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 transition inline-flex items-center gap-1.5" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        Create Pairs
+      <% end %>
+      <%= link_to channel_preview_admin_video_path(@video), class: "text-sm bg-gray-900 text-white px-3 py-1.5 rounded-md hover:bg-black transition inline-flex items-center gap-1.5" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+        Channel Preview
+      <% end %>
+      <%= link_to "Edit", edit_admin_video_path(@video), class: "text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 transition" %>
+      <%= button_to "Delete", admin_video_path(@video), method: :delete, class: "text-sm bg-red-50 text-red-600 px-3 py-1.5 rounded-md hover:bg-red-100 transition", data: { turbo_confirm: "Delete this video and all its variants?" } %>
+    </div>
   </div>
 </div>
+
+<%= render "concepts" %>
 
 <% if @video.ended? %>
 <%
@@ -366,6 +374,49 @@
       <h3 class="text-sm font-semibold text-gray-900">Vote Results</h3>
       <p class="text-xs text-gray-500 mt-0.5"><%= @all_voters.size %> voter<%= @all_voters.size == 1 ? '' : 's' %></p>
     </div>
+
+    <!-- Concept Interest Ratings -->
+    <% if @video.concepts.any? { |c| c.concept_votes.any? } %>
+    <div class="px-5 py-4 border-b border-gray-200">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Concept Interest Ratings</p>
+      <%
+        concept_scores = @video.concepts.map do |c|
+          votes = c.concept_votes
+          avg = votes.any? ? (votes.sum(&:interest_score).to_f / votes.size).round(1) : 0
+          [c, avg, votes.size]
+        end.sort_by { |_, avg, _| -avg }
+        max_avg = concept_scores.first&.at(1) || 0
+      %>
+      <div class="space-y-2">
+        <% concept_scores.each do |concept, avg, count| %>
+          <% next if count == 0 %>
+          <% pct = max_avg > 0 ? (avg / max_avg * 100).round : 0 %>
+          <% is_leader = avg == max_avg && avg > 0 %>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-700 w-36 truncate font-medium flex items-center gap-1.5">
+              <% if concept.picked %>
+                <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
+              <% elsif is_leader %>
+                <span class="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0"></span>
+              <% end %>
+              <%= concept.name %>
+              <% if concept.picked %>
+                <span class="text-[10px] text-green-600 font-normal">(picked)</span>
+              <% end %>
+            </span>
+            <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+              <div class="<%= concept.picked ? 'bg-green-500' : is_leader ? 'bg-amber-400' : 'bg-amber-300' %> h-full rounded-full transition-all flex items-center pl-2" style="width: <%= [pct, 2].max %>%">
+                <% if pct >= 15 %>
+                  <span class="text-xs text-white font-medium"><%= avg %>/10</span>
+                <% end %>
+              </div>
+            </div>
+            <span class="text-sm text-gray-500 w-20 text-right whitespace-nowrap"><%= avg %>/10 (<%= count %>)</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <% end %>
 
     <!-- Variant Rankings -->
     <div class="px-5 py-4 border-b border-gray-200">

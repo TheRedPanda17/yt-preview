@@ -1,0 +1,17 @@
+<!-- Concept planning done: show voter's ratings and picked concept -->
+<div class="mb-6 text-center">
+  <div class="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
+    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+  </div>
+  <h1 class="text-xl font-bold text-[#0f0f0f] mb-1">Thanks for rating the concepts!</h1>
+  <p class="text-sm text-[#606060]">Here's a summary of your interest ratings for <strong><%= @video.working_title %></strong>.</p>
+</div>
+
+<%= render "previews/steps/concept_summary" %>
+
+<div class="text-center">
+  <%= link_to preview_path(@video.share_token, @video_share.token, step: "concept", ci: 0), class: "inline-flex items-center gap-2 text-sm font-medium text-[#065fd4] hover:text-[#0051b5] transition" do %>
+    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    Edit my ratings
+  <% end %>
+</div>

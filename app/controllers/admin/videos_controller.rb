@@ -1,6 +1,6 @@
 module Admin
   class VideosController < BaseController
-    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :update_ab_results, :preview_voting, :compose, :channel_preview, :channel_preview_pair, :create_pair, :create_variant_inline ]
+    before_action :set_video, only: [ :show, :edit, :update, :destroy, :end_voting, :reopen_voting, :begin_concept_planning, :advance_to_voting, :update_ab_results, :preview_voting, :compose, :channel_preview, :channel_preview_pair, :create_pair, :create_variant_inline ]
 
     def index
       @videos = current_admin.videos.order(created_at: :desc)
@@ -12,6 +12,10 @@ module Admin
         :vote_feedbacks,
         :top_picks,
         video_shares: :recipient,
+        concepts: {
+          concept_pairs: { thumbnail_attachment: :blob },
+          concept_votes: []
+        },
         variants: {
           title_thumbnail_pairs: [ :pair_votes, :top_picks, { thumbnail_attachment: :blob } ],
           variant_votes: [],
@@ -20,10 +24,11 @@ module Admin
       ).find(params[:id])
 
       # Collect all unique voter names across all vote types
+      concept_voter_names = @video.concepts.flat_map { |c| c.concept_votes.map(&:voter_name) }
       variant_voter_names = @video.variant_votes.map(&:voter_name)
       pair_voter_names = @video.variants.flat_map { |v| v.pair_votes.map(&:voter_name) }
       top_pick_voter_names = @video.top_picks.map(&:voter_name)
-      @all_voters = (variant_voter_names + pair_voter_names + top_pick_voter_names).uniq.sort
+      @all_voters = (concept_voter_names + variant_voter_names + pair_voter_names + top_pick_voter_names).uniq.sort
     end
 
     def new
@@ -63,6 +68,21 @@ module Admin
     def reopen_voting
       @video.update!(status: "voting")
       redirect_to admin_video_path(@video), notice: "Voting reopened."
+    end
+
+    def begin_concept_planning
+      @video.update!(status: "concept_planning")
+      redirect_to admin_video_path(@video), notice: "Concept planning started. Share the link so voters can rate concepts."
+    end
+
+    def advance_to_voting
+      unless @video.picked_concept
+        redirect_to admin_video_path(@video), alert: "Pick a concept before advancing to thumbnail voting."
+        return
+      end
+
+      @video.update!(status: "voting")
+      redirect_to admin_video_path(@video), notice: "Advanced to thumbnail voting."
     end
 
     def update_ab_results

@@ -1,0 +1,121 @@
+<!-- Concept Planning: Rate interest in one concept at a time (randomized order) -->
+<%
+  concept = @concepts[@concept_index]
+  existing_vote = @my_concept_votes.detect { |v| v.concept_id == concept.id }
+  is_last_concept = @concept_index == @concepts.size - 1
+%>
+
+<div class="mb-6">
+  <h1 class="text-xl font-bold text-[#0f0f0f] mb-1">
+    Rate this concept
+    <span class="text-[#606060] font-normal">(<%= @concept_index + 1 %> of <%= @concepts.size %>)</span>
+  </h1>
+  <p class="text-sm text-[#606060] mb-2">Keep in mind these may be rough drafts and early concepts.</p>
+  <p class="text-sm text-[#606060]">How interested would you be in a video with the <strong><%= concept.name %></strong> concept? Browse the title/thumbnail options below, then rate your interest.</p>
+</div>
+
+<div class="mb-6">
+  <div class="flex items-center gap-3 mb-4">
+    <h2 class="text-lg font-medium text-[#0f0f0f]"><%= concept.name %></h2>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 mb-8">
+    <% concept.concept_pairs.each do |pair| %>
+      <div class="group">
+        <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-3">
+          <% if pair.has_thumbnail? %>
+            <% if pair.thumbnail.attached? %>
+              <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
+            <% else %>
+              <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+            <% end %>
+          <% else %>
+            <div class="w-full h-full flex items-center justify-center text-[#909090]">
+              <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 16H3V5h18v14zM9.5 13l2.5 3.01L14.5 12l4.5 6H5l4.5-6z"/></svg>
+            </div>
+          <% end %>
+          <% if @video.video_duration.present? %>
+            <span class="absolute bottom-1 right-1 bg-black/80 text-white font-medium px-1 rounded z-10" style="font-size: 11px; line-height: 16px; letter-spacing: 0.5px;"><%= @video.video_duration %></span>
+          <% end %>
+        </div>
+        <div class="flex gap-3">
+          <% if @admin.avatar_url %>
+            <img src="<%= @admin.avatar_url %>" class="w-9 h-9 rounded-full flex-shrink-0 mt-1" alt="" referrerpolicy="no-referrer">
+          <% else %>
+            <div class="w-9 h-9 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-sm font-medium flex-shrink-0 mt-1">
+              <%= @admin.yt_username[0].upcase %>
+            </div>
+          <% end %>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-[#0f0f0f] line-clamp-2 mb-1" style="font-size: 14px; font-weight: 500; line-height: 20px;"><%= pair.title %></h3>
+            <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;"><%= @admin.yt_username %></p>
+            <p class="text-[#606060]" style="font-size: 12px; line-height: 18px;"><%= @video.sample_views %> &middot; 1 hour ago</p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+  <%= form_tag vote_concept_path(@video.share_token, @video_share.token, concept_id: concept.id, ci: @concept_index), method: :post, class: "px-5 py-5" do %>
+    <div class="mb-5" data-controller="interest-scale">
+      <label class="block text-sm font-medium text-[#0f0f0f] mb-2">Your interest in "<%= concept.name %>"</label>
+      <div class="max-w-md">
+        <div class="flex justify-between text-xs text-[#909090] mb-2">
+          <span>Not for me</span>
+          <span>Can't wait!</span>
+        </div>
+        <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+          <% (1..10).each do |n| %>
+            <% is_selected = existing_vote&.interest_score == n %>
+            <label class="relative cursor-pointer" data-interest-scale-target="option">
+              <input type="radio" name="interest_score" value="<%= n %>" class="sr-only" <%= 'checked' if is_selected %> data-action="change->interest-scale#update" required>
+              <div data-display class="h-9 rounded-lg border-2 border-[#e5e5e5] flex items-center justify-center text-sm font-medium text-[#606060] transition-all hover:border-[#065fd4] hover:text-[#065fd4]">
+                <%= n %>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <label for="concept_thoughts" class="block text-sm font-medium text-[#0f0f0f] mb-2">What do you think of this concept?</label>
+      <textarea
+        id="concept_thoughts"
+        name="concept_thoughts"
+        rows="3"
+        required
+        class="w-full border border-[#e5e5e5] rounded-lg px-3 py-2 text-sm text-[#0f0f0f] placeholder-[#909090] focus:outline-none focus:border-[#065fd4] focus:ring-1 focus:ring-[#065fd4] resize-none"
+        placeholder="Share your honest reaction to this concept..."><%= existing_vote&.concept_thoughts %></textarea>
+    </div>
+
+    <div class="mb-5">
+      <label for="improvement_suggestions" class="block text-sm font-medium text-[#0f0f0f] mb-2">How could the concept, thumbnail, or title be improved?</label>
+      <textarea
+        id="improvement_suggestions"
+        name="improvement_suggestions"
+        rows="3"
+        required
+        class="w-full border border-[#e5e5e5] rounded-lg px-3 py-2 text-sm text-[#0f0f0f] placeholder-[#909090] focus:outline-none focus:border-[#065fd4] focus:ring-1 focus:ring-[#065fd4] resize-none"
+        placeholder="What would make this concept stronger?"><%= existing_vote&.improvement_suggestions %></textarea>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <% if @concept_index > 0 %>
+        <%= link_to preview_path(@video.share_token, @video_share.token, step: "concept", ci: @concept_index - 1), class: "inline-flex items-center gap-2 text-sm font-medium text-[#606060] hover:text-[#0f0f0f] transition" do %>
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Previous concept
+        <% end %>
+      <% else %>
+        <span></span>
+      <% end %>
+
+      <button type="submit" class="inline-flex items-center gap-2 bg-[#065fd4] text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-[#0051b5] transition cursor-pointer">
+        <%= is_last_concept ? "Finish" : "Next concept" %>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  <% end %>
+</div>

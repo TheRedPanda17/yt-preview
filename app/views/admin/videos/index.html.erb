@@ -19,6 +19,7 @@
           <div>
             <h2 class="text-lg font-semibold text-gray-900"><%= video.working_title %></h2>
             <p class="text-sm text-gray-500 mt-1">
+              <%= video.concepts.count %> concept<%= video.concepts.count == 1 ? '' : 's' %> &middot;
               <%= video.variants.count %> variant<%= video.variants.count == 1 ? '' : 's' %> &middot;
               <%= video.sample_views %> &middot;
               Created <%= time_ago_in_words(video.created_at) %> ago
@@ -27,6 +28,8 @@
           <div class="flex items-center gap-2">
             <% if video.ended? %>
               <span class="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700">Ended</span>
+            <% elsif video.concept_planning? %>
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-amber-100 text-amber-700">Concept Planning</span>
             <% else %>
               <span class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">Voting</span>
             <% end %>

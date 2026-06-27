@@ -17,6 +17,8 @@
   <p class="text-sm text-[#606060]">Thanks for participating, <%= @recipient.name %>! Here are the results for <strong><%= @video.working_title %></strong>.</p>
 </div>
 
+<%= render "previews/steps/concept_summary" %>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   <!-- Column 1: All Thumbnails -->
   <div class="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">

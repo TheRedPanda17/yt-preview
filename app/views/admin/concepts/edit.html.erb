@@ -1,0 +1,25 @@
+<div class="mb-6">
+  <%= link_to "&larr; Back to #{@video.working_title}".html_safe, admin_video_path(@video), class: "text-sm text-gray-500 hover:text-gray-700" %>
+</div>
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Edit Concept</h1>
+
+<%= form_with model: @concept, url: admin_video_concept_path(@video, @concept), class: "space-y-4 max-w-lg" do |f| %>
+  <% if @concept.errors.any? %>
+    <div class="p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+      <ul class="list-disc list-inside">
+        <% @concept.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, "Concept Name", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :name, required: true, autofocus: true, class: "w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 border" %>
+  </div>
+
+  <div class="pt-2">
+    <%= f.submit "Update Concept", class: "bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition cursor-pointer" %>
+  </div>
+<% end %>

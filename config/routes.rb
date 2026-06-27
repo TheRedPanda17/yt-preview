@@ -29,6 +29,8 @@ Rails.application.routes.draw do
       member do
         patch :end_voting
         patch :reopen_voting
+        patch :begin_concept_planning
+        patch :advance_to_voting
         patch :update_ab_results
         get :preview_voting
         get :compose
@@ -38,6 +40,17 @@ Rails.application.routes.draw do
         post :create_variant_inline
       end
       resources :video_shares, only: [ :create, :destroy ], path: "shares"
+      resources :concepts do
+        member do
+          patch :move
+          patch :pick
+        end
+        resources :concept_pairs, path: "pairs" do
+          member do
+            patch :move
+          end
+        end
+      end
       resources :variants do
         member do
           patch :move
@@ -53,6 +66,7 @@ Rails.application.routes.draw do
 
   # Public preview & voting (recipient token required)
   get "p/:share_token/r/:recipient_token", to: "previews#show", as: :preview
+  post "p/:share_token/r/:recipient_token/vote_concept", to: "votes#vote_concept", as: :vote_concept
   post "p/:share_token/r/:recipient_token/vote_variant", to: "votes#vote_variant", as: :vote_variant
   post "p/:share_token/r/:recipient_token/vote_pair", to: "votes#vote_pair", as: :vote_pair
   post "p/:share_token/r/:recipient_token/top_picks", to: "votes#vote_top_picks", as: :vote_top_picks

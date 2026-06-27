@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_11_200654) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_26_210459) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -67,6 +67,36 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_11_200654) do
     t.datetime "updated_at", null: false
     t.index ["admin_user_id", "position"], name: "index_channel_videos_on_admin_user_id_and_position"
     t.index ["admin_user_id"], name: "index_channel_videos_on_admin_user_id"
+  end
+
+  create_table "concept_pairs", force: :cascade do |t|
+    t.bigint "concept_id", null: false
+    t.string "title", null: false
+    t.string "thumbnail_url"
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["concept_id"], name: "index_concept_pairs_on_concept_id"
+  end
+
+  create_table "concept_votes", force: :cascade do |t|
+    t.bigint "concept_id", null: false
+    t.string "voter_name", null: false
+    t.integer "interest_score", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["concept_id", "voter_name"], name: "index_concept_votes_on_concept_id_and_voter_name", unique: true
+    t.index ["concept_id"], name: "index_concept_votes_on_concept_id"
+  end
+
+  create_table "concepts", force: :cascade do |t|
+    t.bigint "video_id", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.boolean "picked", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["video_id"], name: "index_concepts_on_video_id"
   end
 
   create_table "pair_votes", force: :cascade do |t|
@@ -178,6 +208,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_11_200654) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "channel_videos", "admin_users"
+  add_foreign_key "concept_pairs", "concepts"
+  add_foreign_key "concept_votes", "concepts"
+  add_foreign_key "concepts", "videos"
   add_foreign_key "pair_votes", "title_thumbnail_pairs"
   add_foreign_key "pair_votes", "variants"
   add_foreign_key "recipients", "admin_users"

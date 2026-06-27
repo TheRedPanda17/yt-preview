@@ -24,7 +24,51 @@
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-    <% if @variants.any? %>
+    <% if @video.concept_planning? %>
+      <% if @concepts.any? %>
+        <% unless @step == "concept_done" %>
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-2">
+              <% @concepts.each_with_index do |concept, i| %>
+                <% num = i + 1 %>
+                <% voted = @my_concept_votes.any? { |v| v.concept_id == concept.id } %>
+                <% is_current = @step == "concept" && i == @concept_index %>
+                <div class="flex items-center gap-2 <%= voted ? 'text-green-600' : is_current ? 'text-[#065fd4]' : 'text-[#909090]' %>">
+                  <% if voted && !is_current %>
+                    <div class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                  <% elsif is_current %>
+                    <div class="w-7 h-7 rounded-full bg-[#065fd4] flex items-center justify-center flex-shrink-0">
+                      <span class="text-white text-xs font-bold"><%= num %></span>
+                    </div>
+                  <% else %>
+                    <div class="w-7 h-7 rounded-full border-2 border-[#ccc] flex items-center justify-center flex-shrink-0">
+                      <span class="text-xs font-medium text-[#909090]"><%= num %></span>
+                    </div>
+                  <% end %>
+                  <span class="text-xs font-medium hidden sm:inline truncate max-w-[100px]" title="<%= concept.name %>"><%= concept.name %></span>
+                </div>
+                <% unless num == @concepts.size %>
+                  <div class="flex-1 h-0.5 mx-2 <%= voted ? 'bg-green-500' : 'bg-[#e5e5e5]' %>"></div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% case @step %>
+        <% when "concept_done" %>
+          <%= render "previews/steps/concept_done" %>
+        <% else %>
+          <%= render "previews/steps/rate_concept" %>
+        <% end %>
+      <% else %>
+        <div class="text-center py-20">
+          <p class="text-[#606060]">No concepts have been added to this preview yet.</p>
+        </div>
+      <% end %>
+    <% elsif @variants.any? %>
       <% unless @step == "done" || @step == "results" %>
       <!-- Step progress bar -->
       <%

@@ -1,7 +1,8 @@
 class Video < ApplicationRecord
-  STATUSES = %w[voting ended].freeze
+  STATUSES = %w[concept_planning voting ended].freeze
 
   belongs_to :admin_user
+  has_many :concepts, -> { order(:position) }, dependent: :destroy
   has_many :variants, -> { order(:position) }, dependent: :destroy
   has_many :variant_votes, dependent: :destroy
   has_many :vote_feedbacks, dependent: :destroy
@@ -15,12 +16,24 @@ class Video < ApplicationRecord
 
   before_validation :generate_share_token, on: :create
 
+  def concept_planning?
+    status == "concept_planning"
+  end
+
   def voting?
     status == "voting"
   end
 
   def ended?
     status == "ended"
+  end
+
+  def picked_concept
+    concepts.find_by(picked: true)
+  end
+
+  def shuffled_concepts_for(voter_name)
+    concepts.to_a.shuffle(random: Random.new(concept_shuffle_seed(voter_name)))
   end
 
   def all_pairs
@@ -44,6 +57,10 @@ class Video < ApplicationRecord
   end
 
   private
+
+  def concept_shuffle_seed(voter_name)
+    Digest::SHA256.hexdigest("#{voter_name}-#{id}-concepts").to_i(16)
+  end
 
   def generate_share_token
     self.share_token ||= SecureRandom.urlsafe_base64(8)

@@ -3,6 +3,36 @@ class VotesController < ApplicationController
   before_action :set_video_share
   before_action :require_voter
 
+  def vote_concept
+    unless @video.concept_planning?
+      return redirect_to preview_path(@video.share_token, @video_share.token), alert: "Concept planning is not active."
+    end
+
+    concept = @video.concepts.find(params[:concept_id])
+    interest_score = params[:interest_score].to_i
+
+    unless (1..10).cover?(interest_score)
+      return redirect_to_concept_step(ci: params[:ci], alert: "Please pick an interest level.")
+    end
+
+    vote = concept.concept_votes.find_or_initialize_by(voter_name: voter_name)
+    vote.interest_score = interest_score
+
+    unless vote.save
+      return redirect_to_concept_step(ci: params[:ci], alert: "Could not record vote.")
+    end
+
+    current_ci = (params[:ci] || "0").to_i
+    shuffled = @video.shuffled_concepts_for(voter_name)
+    next_ci = current_ci + 1
+
+    if next_ci < shuffled.size
+      redirect_to_concept_step(ci: next_ci, notice: "Rating saved!")
+    else
+      redirect_to preview_path(@video.share_token, @video_share.token, step: "concept_done"), notice: "All concepts rated!"
+    end
+  end
+
   def vote_variant
     variant_ids = Array(params[:variant_ids]).map(&:to_i).uniq
     total_variants = @video.variants.size
@@ -87,6 +117,12 @@ class VotesController < ApplicationController
   def redirect_to_step(step, vi: nil, **flash_opts)
     params_hash = { step: step }
     params_hash[:vi] = vi if vi
+    redirect_to preview_path(@video.share_token, @video_share.token, params_hash), flash_opts
+  end
+
+  def redirect_to_concept_step(ci: nil, **flash_opts)
+    params_hash = { step: "concept" }
+    params_hash[:ci] = ci if ci
     redirect_to preview_path(@video.share_token, @video_share.token, params_hash), flash_opts
   end
 

@@ -2,7 +2,12 @@ class PreviewsController < ApplicationController
   layout "preview"
 
   def show
-    @video = Video.includes(:admin_user, :vote_feedbacks, :top_picks, video_shares: :recipient, variants: { title_thumbnail_pairs: [:pair_votes, :top_picks, { thumbnail_attachment: :blob }] }).find_by!(share_token: params[:share_token])
+    @video = Video.includes(
+      :admin_user, :vote_feedbacks, :top_picks,
+      video_shares: :recipient,
+      concepts: { concept_pairs: { thumbnail_attachment: :blob }, concept_votes: [] },
+      variants: { title_thumbnail_pairs: [ :pair_votes, :top_picks, { thumbnail_attachment: :blob } ] }
+    ).find_by!(share_token: params[:share_token])
     @video_share = @video.video_shares.includes(:recipient).find_by!(token: params[:recipient_token])
     @recipient = @video_share.recipient
     @admin = @video.admin_user
@@ -12,6 +17,7 @@ class PreviewsController < ApplicationController
     cookies.signed.permanent[:voter_name] = @recipient.name
 
     # Precompute voter state (needed for both active voting and results)
+    @my_concept_votes = @video.concepts.flat_map(&:concept_votes).select { |v| v.voter_name == voter_name }
     @my_variant_votes = @video.variant_votes.select { |v| v.voter_name == voter_name }
     @my_top_picks = @video.top_picks.select { |tp| tp.voter_name == voter_name }.sort_by(&:position)
     @existing_feedback = @video.vote_feedbacks.detect { |f| f.voter_name == voter_name }
@@ -23,6 +29,12 @@ class PreviewsController < ApplicationController
     # If voting has ended, show results page instead of voting flow
     if @video.ended?
       @step = "results"
+      return
+    end
+
+    # Concept planning flow
+    if @video.concept_planning?
+      setup_concept_planning_step
       return
     end
 
@@ -43,5 +55,20 @@ class PreviewsController < ApplicationController
 
   def unauthorized
     render :unauthorized, layout: "preview", status: :forbidden
+  end
+
+  private
+
+  def setup_concept_planning_step
+    @concepts = @video.shuffled_concepts_for(voter_name)
+    @total_concepts = @concepts.size
+    @step = (params[:step] || "concept").to_s
+
+    if @step == "concept"
+      @concept_index = [(params[:ci] || "0").to_i, 0].max
+      @concept_index = [@concept_index, @total_concepts - 1].min if @total_concepts > 0
+      @concept_votes_cast = @my_concept_votes.size
+      @all_concepts_rated = @concept_votes_cast == @total_concepts && @total_concepts > 0
+    end
   end
 end
