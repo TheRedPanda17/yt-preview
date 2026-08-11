@@ -10,7 +10,7 @@ class RefactorRecipientsAndCreateVideoShares < ActiveRecord::Migration[7.2]
     end
 
     add_index :video_shares, :token, unique: true
-    add_index :video_shares, [:video_id, :recipient_id], unique: true
+    add_index :video_shares, [ :video_id, :recipient_id ], unique: true
 
     # Migrate existing recipients: move video_id -> admin_user_id
     # First add admin_user_id column
@@ -36,7 +36,7 @@ class RefactorRecipientsAndCreateVideoShares < ActiveRecord::Migration[7.2]
     end
 
     # Remove video-specific columns from recipients
-    remove_index :recipients, [:video_id, :name]
+    remove_index :recipients, [ :video_id, :name ]
     remove_index :recipients, :token
     remove_reference :recipients, :video, foreign_key: true
     remove_column :recipients, :token, :string
@@ -45,6 +45,6 @@ class RefactorRecipientsAndCreateVideoShares < ActiveRecord::Migration[7.2]
     change_column_null :recipients, :admin_user_id, false
 
     # Add unique index on admin_user_id + name
-    add_index :recipients, [:admin_user_id, :name], unique: true
+    add_index :recipients, [ :admin_user_id, :name ], unique: true
   end
 end

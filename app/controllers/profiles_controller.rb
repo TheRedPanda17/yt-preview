@@ -13,7 +13,7 @@ class ProfilesController < ApplicationController
     # Get all video shares for these recipients, with eager-loaded associations
     @video_shares = VideoShare
       .where(recipient_id: recipient_ids)
-      .includes(video: [:admin_user, { variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } } }], recipient: [])
+      .includes(video: [ :admin_user, { variants: { title_thumbnail_pairs: { thumbnail_attachment: :blob } } } ], recipient: [])
       .order(created_at: :desc)
 
     # Precompute voting progress per video
@@ -29,19 +29,16 @@ class ProfilesController < ApplicationController
       has_votes = voted_video_ids.include?(video.id)
       has_feedback = feedback_video_ids.include?(video.id)
 
-      @voting_progress[video.id] = if video.concept_planning?
-                                       if has_concept_votes
-                                         :completed
-                                       else
-                                         :not_started
-                                       end
-                                     elsif has_feedback
-                                       :completed
-                                     elsif has_votes
-                                       :in_progress
-                                     else
-                                       :not_started
-                                     end
+      @voting_progress[video.id] =
+        if video.concept_planning?
+          has_concept_votes ? :completed : :not_started
+        elsif has_feedback
+          :completed
+        elsif has_votes
+          :in_progress
+        else
+          :not_started
+        end
     end
   end
 end

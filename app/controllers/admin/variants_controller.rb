@@ -1,7 +1,7 @@
 module Admin
   class VariantsController < BaseController
     before_action :set_video
-    before_action :set_variant, only: [:show, :edit, :update, :destroy, :move]
+    before_action :set_variant, only: [ :show, :edit, :update, :destroy, :move ]
 
     def show
     end

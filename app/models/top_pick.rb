@@ -3,7 +3,7 @@ class TopPick < ApplicationRecord
   belongs_to :title_thumbnail_pair
 
   validates :voter_name, presence: true
-  validates :title_thumbnail_pair_id, uniqueness: { scope: [:video_id, :voter_name], message: "already picked" }
+  validates :title_thumbnail_pair_id, uniqueness: { scope: [ :video_id, :voter_name ], message: "already picked" }
   validate :max_three_per_voter
 
   private
