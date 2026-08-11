@@ -1,7 +1,7 @@
 module Admin
   class PairsController < BaseController
     before_action :set_video_and_variant
-    before_action :set_pair, only: [:edit, :update, :destroy, :move]
+    before_action :set_pair, only: [ :edit, :update, :destroy, :move ]
 
     def new
       @pair = @variant.title_thumbnail_pairs.build

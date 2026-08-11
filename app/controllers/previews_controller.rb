@@ -40,8 +40,8 @@ class PreviewsController < ApplicationController
 
     # Determine current step
     @step = (params[:step] || "1").to_s
-    @variant_index = [(params[:vi] || "0").to_i, 0].max
-    @variant_index = [@variant_index, @variants.size - 1].min if @variants.any?
+    @variant_index = [ (params[:vi] || "0").to_i, 0 ].max
+    @variant_index = [ @variant_index, @variants.size - 1 ].min if @variants.any?
 
     # Step counts for progress bar
     @total_variants = @variants.size
@@ -65,8 +65,8 @@ class PreviewsController < ApplicationController
     @step = (params[:step] || "concept").to_s
 
     if @step == "concept"
-      @concept_index = [(params[:ci] || "0").to_i, 0].max
-      @concept_index = [@concept_index, @total_concepts - 1].min if @total_concepts > 0
+      @concept_index = [ (params[:ci] || "0").to_i, 0 ].max
+      @concept_index = [ @concept_index, @total_concepts - 1 ].min if @total_concepts > 0
       @concept_votes_cast = @my_concept_votes.size
       @all_concepts_rated = @concept_votes_cast == @total_concepts && @total_concepts > 0
     end

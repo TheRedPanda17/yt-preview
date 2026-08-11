@@ -8,6 +8,6 @@ class CreatePairVotes < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :pair_votes, [:variant_id, :voter_name], unique: true
+    add_index :pair_votes, [ :variant_id, :voter_name ], unique: true
   end
 end

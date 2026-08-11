@@ -6,7 +6,7 @@ class BackfillTopPicksFromFavoriteVariant < ActiveRecord::Migration[7.2]
     voters_with_top_picks = TopPick.distinct.pluck(:video_id, :voter_name).to_set
 
     VariantVote.where(position: 1).find_each do |vv|
-      key = [vv.video_id, vv.voter_name]
+      key = [ vv.video_id, vv.voter_name ]
       next if voters_with_top_picks.include?(key)
 
       pair_vote = PairVote.find_by(variant_id: vv.variant_id, voter_name: vv.voter_name)

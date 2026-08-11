@@ -8,6 +8,6 @@ class CreateVariantVotes < ActiveRecord::Migration[7.2]
       t.timestamps
     end
 
-    add_index :variant_votes, [:video_id, :voter_name], unique: true
+    add_index :variant_votes, [ :video_id, :voter_name ], unique: true
   end
 end

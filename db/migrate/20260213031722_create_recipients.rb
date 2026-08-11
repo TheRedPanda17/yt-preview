@@ -9,6 +9,6 @@ class CreateRecipients < ActiveRecord::Migration[7.2]
     end
 
     add_index :recipients, :token, unique: true
-    add_index :recipients, [:video_id, :name], unique: true
+    add_index :recipients, [ :video_id, :name ], unique: true
   end
 end

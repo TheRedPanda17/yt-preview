@@ -16,6 +16,6 @@ class Rack::Attack
 
   # Custom response for throttled requests
   self.throttled_responder = lambda do |req|
-    [429, { "Content-Type" => "text/html" }, ["Too many requests. Please wait a moment and try again."]]
+    [ 429, { "Content-Type" => "text/html" }, [ "Too many requests. Please wait a moment and try again." ] ]
   end
 end
