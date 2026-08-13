@@ -32,11 +32,7 @@
       <div class="group">
         <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-3 cursor-pointer">
           <% if pair.has_thumbnail? %>
-            <% if pair.thumbnail.attached? %>
-              <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
-            <% else %>
-              <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
-            <% end %>
+            <%= thumbnail_image_tag pair %>
           <% else %>
             <div class="w-full h-full flex items-center justify-center text-[#909090]">
               <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
@@ -56,7 +52,7 @@
             </div>
             <div class="absolute inset-0 bg-[#065fd4]/10 pointer-events-none"></div>
           <% else %>
-            <%= button_to vote_pair_path(@video.share_token, @video_share.token, variant_id: variant.id, pair_id: pair.id, vi: @variant_index), method: :post, class: "absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer" do %>
+            <%= button_to vote_pair_path(@video.share_token, @video_share.token, variant_id: variant.id, pair_id: pair.id, vi: @variant_index), method: :post, form_class: "absolute inset-0 z-10", class: "w-full h-full bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer" do %>
               <span class="bg-white/95 backdrop-blur-sm text-[#0f0f0f] text-xs font-medium px-3 py-1.5 rounded-full shadow-sm">
                 Pick this one
               </span>
