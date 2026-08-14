@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html class="h-full">
+<html class="h-full" data-turbo="false">
   <head>
     <title><%= content_for(:title) || "YT Preview" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%# Safari + Turbo Drive reuses in-memory images from earlier voting steps and paints them as "?". Force full page loads. %>
+    <meta name="turbo-visit-control" content="reload">
+    <meta name="turbo-cache-control" content="no-cache">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>

@@ -54,4 +54,14 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_includes html, "/rails/active_storage/blobs/proxy/"
     assert_not_includes html, "/rails/active_storage/blobs/redirect/"
   end
+
+  test "uniquifies thumbnail srcs per voting step so Safari cannot reuse a broken image" do
+    controller.params = ActionController::Parameters.new(step: "3")
+    record = UrlThumbnail.new("https://img.youtube.com/vi/abc/maxresdefault.jpg")
+    def record.id; 42; end
+
+    html = thumbnail_image_tag(record)
+
+    assert_includes html, "d=3-42"
+  end
 end

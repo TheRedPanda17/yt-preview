@@ -1,6 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Last-resort retry if Safari still paints a broken "?" after a Turbo visit.
+// Safari can paint a cached broken "?" for an image that later loads fine on
+// refresh. Retry with a unique query param so the request is not served from
+// the broken in-memory cache.
 export default class extends Controller {
   connect() {
     this.element.querySelectorAll("img").forEach((img) => {
@@ -17,16 +19,17 @@ export default class extends Controller {
 
   retry = (event) => {
     const img = event.currentTarget
-    if (!img || img.dataset.retrying === "true") return
+    if (!img) return
+
+    const tries = parseInt(img.dataset.retryCount || "0", 10)
+    if (tries >= 2) return
 
     const src = img.getAttribute("src")
     if (!src) return
 
-    img.dataset.retrying = "true"
-    img.removeAttribute("src")
-    requestAnimationFrame(() => {
-      img.src = src
-      delete img.dataset.retrying
-    })
+    img.dataset.retryCount = String(tries + 1)
+    const url = new URL(src, window.location.origin)
+    url.searchParams.set("_r", String(Date.now()))
+    img.src = url.toString()
   }
 }
