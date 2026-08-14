@@ -43,7 +43,11 @@ Rails.application.routes.draw do
         post :create_variant_inline
         post :create_concept_inline
       end
-      resources :video_shares, only: [ :create, :destroy ], path: "shares"
+      resources :video_shares, only: [ :create, :destroy ], path: "shares" do
+        member do
+          delete :clear_votes
+        end
+      end
       resources :concepts do
         member do
           patch :move

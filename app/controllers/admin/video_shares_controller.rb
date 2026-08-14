@@ -20,6 +20,13 @@ module Admin
       redirect_to admin_video_path(@video), notice: "#{name} removed from this video."
     end
 
+    def clear_votes
+      @video_share = @video.video_shares.find(params[:id])
+      name = @video_share.recipient.name
+      @video.clear_votes_for!(name)
+      redirect_to admin_video_path(@video), notice: "Cleared #{name}'s votes. They still have access."
+    end
+
     private
 
     def set_video

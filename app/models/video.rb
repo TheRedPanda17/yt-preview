@@ -36,6 +36,16 @@ class Video < ApplicationRecord
     concepts.to_a.shuffle(random: Random.new(concept_shuffle_seed(voter_name)))
   end
 
+  def clear_votes_for!(voter_name)
+    transaction do
+      variant_votes.where(voter_name: voter_name).delete_all
+      PairVote.where(variant_id: variants.select(:id), voter_name: voter_name).delete_all
+      top_picks.where(voter_name: voter_name).delete_all
+      vote_feedbacks.where(voter_name: voter_name).delete_all
+      ConceptVote.where(concept_id: concepts.select(:id), voter_name: voter_name).delete_all
+    end
+  end
+
   def all_pairs
     TitleThumbnailPair.joins(:variant).where(variants: { video_id: id }).order(:position)
   end
