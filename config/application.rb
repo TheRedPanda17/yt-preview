@@ -28,6 +28,11 @@ module YtPreview
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Serve attachments directly instead of redirecting to a short-lived signed
+    # URL. Safari caches the redirect for 5 minutes but the URL it points to
+    # expires just as fast, so thumbnails turn into broken images.
+    config.active_storage.resolve_model_to_route = :rails_storage_proxy
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
