@@ -31,11 +31,7 @@
 
           <div class="relative aspect-video bg-[#e5e5e5] rounded-xl overflow-hidden mb-3">
             <% if pair.has_thumbnail? %>
-              <% if pair.thumbnail.attached? %>
-                <%= image_tag pair.thumbnail, class: "w-full h-full object-cover", loading: "lazy" %>
-              <% else %>
-                <img src="<%= pair.thumbnail_url %>" class="w-full h-full object-cover" alt="" loading="lazy">
-              <% end %>
+              <%= thumbnail_image_tag pair %>
             <% else %>
               <div class="w-full h-full flex items-center justify-center text-[#909090]">
                 <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">

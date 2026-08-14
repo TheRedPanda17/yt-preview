@@ -9,3 +9,22 @@
     overflow: hidden;
   }
 }
+
+/*
+  Safari does not resolve percentage heights for replaced elements (img)
+  inside aspect-ratio boxes, so thumbnails collapse to 0px and can paint as
+  broken "?" icons. Pin images to the box instead.
+*/
+.aspect-video {
+  position: relative;
+}
+
+.aspect-video > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
