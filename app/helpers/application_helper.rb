@@ -3,11 +3,12 @@ module ApplicationHelper
 
   # Safari does not resolve percentage heights on <img> inside aspect-ratio
   # boxes, so thumbnails collapse to 0px and never paint. Pin the image to the
-  # frame instead. External URLs omit the referrer so hotlinked thumbnails
-  # (e.g. YouTube) are not blocked.
+  # frame instead. Do not use loading="lazy": Safari often leaves those images
+  # as broken "?" icons until a full refresh, especially after Turbo visits.
+  # External URLs omit the referrer so hotlinked thumbnails are not blocked.
   def thumbnail_image_tag(record, **html_options)
     classes = [ THUMBNAIL_IMG_CLASSES, html_options.delete(:class) ].compact.join(" ")
-    html_options = { alt: "", class: classes, loading: "lazy" }.merge(html_options)
+    html_options = { alt: "", class: classes, loading: "eager" }.merge(html_options)
 
     if record.thumbnail.attached?
       image_tag(record.thumbnail, html_options)

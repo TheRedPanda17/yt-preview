@@ -26,7 +26,9 @@ class ApplicationHelperTest < ActionView::TestCase
 
     assert_includes html, "absolute inset-0"
     assert_includes html, "h-full w-full object-cover"
+    assert_includes html, 'loading="eager"'
     assert_includes html, 'referrerpolicy="no-referrer"'
     assert_includes html, "https://img.youtube.com/vi/abc/maxresdefault.jpg"
+    assert_not_includes html, 'loading="lazy"'
   end
 end

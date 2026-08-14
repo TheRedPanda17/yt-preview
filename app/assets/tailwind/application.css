@@ -12,8 +12,8 @@
 
 /*
   Safari does not resolve percentage heights for replaced elements (img)
-  inside aspect-ratio boxes, so thumbnails collapse to 0px and lazy-loading
-  never fires. Pin images to the box instead.
+  inside aspect-ratio boxes, so thumbnails collapse to 0px and can paint as
+  broken "?" icons. Pin images to the box instead.
 */
 .aspect-video {
   position: relative;
