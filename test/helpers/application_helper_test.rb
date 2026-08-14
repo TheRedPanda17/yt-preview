@@ -21,6 +21,18 @@ class ApplicationHelperTest < ActionView::TestCase
     end
   end
 
+  class AttachedThumbnail
+    def thumbnail
+      @thumbnail ||= Attachment.new
+    end
+
+    class Attachment
+      def attached?
+        true
+      end
+    end
+  end
+
   test "pins external thumbnail URLs inside the aspect-ratio box for Safari" do
     html = thumbnail_image_tag(UrlThumbnail.new("https://img.youtube.com/vi/abc/maxresdefault.jpg"))
 
@@ -30,5 +42,16 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_includes html, 'referrerpolicy="no-referrer"'
     assert_includes html, "https://img.youtube.com/vi/abc/maxresdefault.jpg"
     assert_not_includes html, 'loading="lazy"'
+  end
+
+  test "renders attached thumbnails through the Active Storage proxy path" do
+    def rails_storage_proxy_path(_attachment)
+      "/rails/active_storage/blobs/proxy/SIGNED/thumb.jpg"
+    end
+
+    html = thumbnail_image_tag(AttachedThumbnail.new)
+
+    assert_includes html, "/rails/active_storage/blobs/proxy/"
+    assert_not_includes html, "/rails/active_storage/blobs/redirect/"
   end
 end

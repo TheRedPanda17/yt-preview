@@ -1,21 +1,32 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Safari sometimes paints voting thumbnails as broken "?" icons after Turbo
-// navigations even though the image URL is valid. Re-assigning src forces a
-// retry once the layout has settled.
+// Last-resort retry if Safari still paints a broken "?" after a Turbo visit.
 export default class extends Controller {
   connect() {
-    requestAnimationFrame(() => this.reloadBrokenImages())
+    this.element.querySelectorAll("img").forEach((img) => {
+      img.addEventListener("error", this.retry)
+      if (img.complete && img.naturalWidth === 0) this.retry({ currentTarget: img })
+    })
   }
 
-  reloadBrokenImages() {
+  disconnect() {
     this.element.querySelectorAll("img").forEach((img) => {
-      if (!(img.complete && img.naturalWidth === 0)) return
-      if (!img.getAttribute("src")) return
+      img.removeEventListener("error", this.retry)
+    })
+  }
 
-      const src = img.currentSrc || img.src
-      img.src = ""
+  retry = (event) => {
+    const img = event.currentTarget
+    if (!img || img.dataset.retrying === "true") return
+
+    const src = img.getAttribute("src")
+    if (!src) return
+
+    img.dataset.retrying = "true"
+    img.removeAttribute("src")
+    requestAnimationFrame(() => {
       img.src = src
+      delete img.dataset.retrying
     })
   }
 }

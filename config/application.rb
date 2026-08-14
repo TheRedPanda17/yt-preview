@@ -28,6 +28,11 @@ module YtPreview
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Safari mishandles Active Storage's default redirect URLs: it caches the
+    # 302 separately from the disk blob and later paints broken "?" images.
+    # Proxy streams the file from Rails without a redirect.
+    config.active_storage.resolve_model_to_route = :rails_storage_proxy
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
