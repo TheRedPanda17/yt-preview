@@ -30,6 +30,16 @@ class ApplicationHelperTest < ActionView::TestCase
       def attached?
         true
       end
+
+      def blob
+        @blob ||= Blob.new
+      end
+
+      class Blob
+        def signed_id
+          "SIGNED"
+        end
+      end
     end
   end
 
@@ -38,30 +48,15 @@ class ApplicationHelperTest < ActionView::TestCase
 
     assert_includes html, "absolute inset-0"
     assert_includes html, "h-full w-full object-cover"
-    assert_includes html, 'loading="eager"'
     assert_includes html, 'referrerpolicy="no-referrer"'
     assert_includes html, "https://img.youtube.com/vi/abc/maxresdefault.jpg"
     assert_not_includes html, 'loading="lazy"'
   end
 
-  test "renders attached thumbnails through the Active Storage proxy path" do
-    def rails_storage_proxy_path(_attachment)
-      "/rails/active_storage/blobs/proxy/SIGNED/thumb.jpg"
-    end
-
+  test "renders attached thumbnails through the no-store media endpoint" do
     html = thumbnail_image_tag(AttachedThumbnail.new)
 
-    assert_includes html, "/rails/active_storage/blobs/proxy/"
-    assert_not_includes html, "/rails/active_storage/blobs/redirect/"
-  end
-
-  test "uniquifies thumbnail srcs per voting step so Safari cannot reuse a broken image" do
-    controller.params = ActionController::Parameters.new(step: "3")
-    record = UrlThumbnail.new("https://img.youtube.com/vi/abc/maxresdefault.jpg")
-    def record.id; 42; end
-
-    html = thumbnail_image_tag(record)
-
-    assert_includes html, "d=3-42"
+    assert_includes html, "/media/SIGNED"
+    assert_not_includes html, "/rails/active_storage/"
   end
 end

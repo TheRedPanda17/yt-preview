@@ -69,6 +69,7 @@ Rails.application.routes.draw do
   end
 
   # Public preview & voting (recipient token required)
+  get "media/:signed_id", to: "media#show", as: :media
   get "p/:share_token/r/:recipient_token", to: "previews#show", as: :preview
   post "p/:share_token/r/:recipient_token/vote_concept", to: "votes#vote_concept", as: :vote_concept
   post "p/:share_token/r/:recipient_token/vote_variant", to: "votes#vote_variant", as: :vote_variant

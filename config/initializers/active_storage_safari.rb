@@ -1,17 +1,24 @@
-# Safari caches Active Storage redirect responses separately from the disk
-# blob. When the blob is evicted first, <img> tags paint as broken "?" icons
-# until the redirect max-age expires or the cache is cleared. Align the disk
-# response lifetime with the redirect lifetime for any remaining redirect URLs
-# (e.g. explicit rails_blob_path helpers).
-module ActiveStorageDiskControllerCacheLifetime
+# Safari caches Active Storage 302 redirects separately from the file. When
+# the file is evicted first, <img> tags paint as broken "?" icons. Never let
+# Safari store those responses.
+module ActiveStorageSafariNoStore
+  def show
+    response.headers["Cache-Control"] = "no-store"
+    super
+  end
+end
+
+module ActiveStorageDiskSafariNoStore
   private
 
   def serve_file(...)
-    expires_in ActiveStorage.service_urls_expire_in, must_revalidate: true
+    response.headers["Cache-Control"] = "no-store"
     super(...)
   end
 end
 
 Rails.application.config.to_prepare do
-  ActiveStorage::DiskController.prepend ActiveStorageDiskControllerCacheLifetime
+  ActiveStorage::Blobs::RedirectController.prepend ActiveStorageSafariNoStore
+  ActiveStorage::Blobs::ProxyController.prepend ActiveStorageSafariNoStore
+  ActiveStorage::DiskController.prepend ActiveStorageDiskSafariNoStore
 end
